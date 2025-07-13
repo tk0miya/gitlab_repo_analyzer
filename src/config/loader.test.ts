@@ -3,18 +3,15 @@ import { ConfigLoader } from "./loader.js";
 
 describe("ConfigLoader", () => {
 	let originalEnv: NodeJS.ProcessEnv;
-	let originalArgv: string[];
 
 	beforeEach(() => {
-		// 環境変数とargvをバックアップ
+		// 環境変数をバックアップ
 		originalEnv = { ...process.env };
-		originalArgv = [...process.argv];
 	});
 
 	afterEach(() => {
-		// 環境変数とargvを復元
+		// 環境変数を復元
 		process.env = originalEnv;
-		process.argv = originalArgv;
 	});
 
 	test("デフォルト設定で初期化される", async () => {
@@ -23,9 +20,6 @@ describe("ConfigLoader", () => {
 		delete process.env.DB_HOST;
 		delete process.env.DB_DATABASE;
 		delete process.env.DB_USERNAME;
-
-		// CLI引数をクリア
-		process.argv = ["node", "test.js"];
 
 		const loader = ConfigLoader.getInstance();
 
@@ -42,9 +36,6 @@ describe("ConfigLoader", () => {
 		process.env.DB_USERNAME = "test-user";
 		process.env.DB_PASSWORD = "test-pass";
 		process.env.DB_SSL = "true";
-
-		// CLI引数をクリア
-		process.argv = ["node", "test.js"];
 
 		const loader = ConfigLoader.getInstance();
 		const config = await loader.load();
@@ -64,8 +55,6 @@ describe("ConfigLoader", () => {
 		process.env.DB_DATABASE = "test-db";
 		process.env.DB_USERNAME = "test-user";
 
-		process.argv = ["node", "test.js"];
-
 		const loader = ConfigLoader.getInstance();
 		const config = await loader.load();
 
@@ -80,8 +69,6 @@ describe("ConfigLoader", () => {
 		process.env.GITLAB_TOKEN = "test-token";
 		process.env.DB_DATABASE = "test-db";
 		process.env.DB_USERNAME = "test-user";
-
-		process.argv = ["node", "test.js"];
 
 		const loader = ConfigLoader.getInstance();
 		const config = await loader.load();
@@ -103,8 +90,6 @@ describe("ConfigLoader", () => {
 		// 不正な設定を設定
 		process.env.GITLAB_TOKEN = ""; // 空文字（無効）
 		process.env.DB_PORT = "invalid"; // 数値以外（無効）
-
-		process.argv = ["node", "test.js"];
 
 		const loader = ConfigLoader.getInstance();
 
