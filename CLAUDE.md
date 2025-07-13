@@ -75,12 +75,6 @@ npm test
 
 ## 開発ワークフロー
 
-### Claude Code 使用時の権限設定
-```bash
-# セキュリティを考慮した最小権限設定
-claude --allowedTools "Bash(git:*),Bash(gh:*),Bash(npm:*),Bash(node:*),Bash(mkdir:*),Bash(rm:*)"
-```
-
 ### PR作成ルール
 - **必須プロセス**: 全ての修正作業はPRを通して行う
 - **事前検証**: コミット前に必ずlint、typecheck、testを実行
