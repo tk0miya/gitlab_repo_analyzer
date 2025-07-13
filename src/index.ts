@@ -10,6 +10,6 @@ export default function main(): void {
 }
 
 // エントリーポイントとして実行された場合
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
