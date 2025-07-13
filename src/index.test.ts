@@ -39,13 +39,6 @@ describe("設定システムテスト", () => {
 		expect(config.gitlab.url).toBe("https://gitlab.com");
 		expect(config.database.database).toBe("test-database");
 		expect(config.database.username).toBe("test-user");
-		expect(config.analysis.modules).toEqual([
-			"structure",
-			"quality",
-			"dependencies",
-			"security",
-			"commits",
-		]);
 	});
 
 	it("必須設定が不足している場合エラーが発生する", async () => {

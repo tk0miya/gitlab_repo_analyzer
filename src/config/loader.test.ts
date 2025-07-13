@@ -64,28 +64,6 @@ describe("ConfigLoader", () => {
 		expect(config.gitlab.timeout).toBe(30000);
 	});
 
-	test("分析設定が固定値で設定される", async () => {
-		// 必須項目のみ設定
-		process.env.GITLAB_TOKEN = "test-token";
-		process.env.DB_DATABASE = "test-db";
-		process.env.DB_USERNAME = "test-user";
-
-		const loader = ConfigLoader.getInstance();
-		const config = await loader.load();
-
-		// 分析設定の固定値を確認
-		expect(config.analysis.modules).toEqual([
-			"structure",
-			"quality",
-			"dependencies",
-			"security",
-			"commits",
-		]);
-		expect(config.analysis.outputFormat).toBe("json");
-		expect(config.analysis.cacheEnabled).toBe(true);
-		expect(config.analysis.cacheTTL).toBe(3600);
-	});
-
 	test("設定のバリデーションが動作する", async () => {
 		// 不正な設定を設定
 		process.env.GITLAB_TOKEN = ""; // 空文字（無効）

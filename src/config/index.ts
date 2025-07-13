@@ -5,8 +5,6 @@
 
 export { ConfigLoader, loadConfig } from "./loader.js";
 export {
-	type AnalysisConfig,
-	AnalysisConfigSchema,
 	type Config,
 	ConfigSchema,
 	type DatabaseConfig,

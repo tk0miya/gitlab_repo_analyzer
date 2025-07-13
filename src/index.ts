@@ -26,7 +26,6 @@ async function main(): Promise<void> {
 			...config.database,
 			password: config.database.password ? "***" : "未設定",
 		});
-		console.log("分析設定:", config.analysis);
 
 		// 分析機能はまだ実装されていないことを表示
 		console.log();

@@ -42,19 +42,6 @@ export class ConfigLoader {
 				password: process.env.DB_PASSWORD,
 				ssl: process.env.DB_SSL === "true",
 			},
-			analysis: {
-				// すべて固定値
-				modules: [
-					"structure",
-					"quality",
-					"dependencies",
-					"security",
-					"commits",
-				] as const,
-				outputFormat: "json" as const,
-				cacheEnabled: true as const,
-				cacheTTL: 3600 as const,
-			},
 		};
 
 		// 設定を検証

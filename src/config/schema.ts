@@ -24,31 +24,13 @@ export const DatabaseConfigSchema = z.object({
 });
 
 /**
- * 分析設定スキーマ - すべて固定値
- */
-export const AnalysisConfigSchema = z.object({
-	modules: z.tuple([
-		z.literal("structure"),
-		z.literal("quality"),
-		z.literal("dependencies"),
-		z.literal("security"),
-		z.literal("commits"),
-	]),
-	outputFormat: z.literal("json"),
-	cacheEnabled: z.literal(true),
-	cacheTTL: z.literal(3600),
-});
-
-/**
  * 全体設定スキーマ
  */
 export const ConfigSchema = z.object({
 	gitlab: GitLabConfigSchema,
 	database: DatabaseConfigSchema,
-	analysis: AnalysisConfigSchema,
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
 export type GitLabConfig = z.infer<typeof GitLabConfigSchema>;
 export type DatabaseConfig = z.infer<typeof DatabaseConfigSchema>;
-export type AnalysisConfig = z.infer<typeof AnalysisConfigSchema>;
