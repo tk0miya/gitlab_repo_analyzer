@@ -2,6 +2,44 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+# 🚨 CLAUDE CODE 絶対要件 🚨
+
+## PR作成の絶対義務
+**重要**: すべてのコード変更は必ずPRを作成して完了する
+
+### 必須プロセス
+1. コード変更 → コミット・プッシュ
+2. **必須**: `gh pr create` コマンド実行
+3. **必須**: PR URL確認・報告
+
+⚠️ **手動リンク提供は禁止** - 必ず `gh pr create` を実行する
+⚠️ **PR作成なしの作業完了報告は禁止**
+
+### PR作成検証チェックリスト（必須実行）
+- [ ] `gh pr create` コマンド実行済み
+- [ ] PR番号を取得済み
+- [ ] PR URLをGitHub commentで報告済み
+
+❌ 上記すべて完了するまで作業完了としない
+
+### gh pr create 失敗時の対処
+1. エラー内容をGitHub commentで報告
+2. 権限エラーの場合: 具体的権限名を明記
+3. **絶対に手動リンクで代替しない**
+4. ユーザーに解決を依頼
+
+🚨 **CLAUDE CODE は以下を絶対に守る**:
+- PR作成なしに作業完了しない
+- 手動リンクを提供しない  
+- `gh pr create` の実行を必ず試みる
+- PR作成失敗時は明確にエラー報告する
+
+## 必須ワークフロー（簡潔版）
+1. **実装・テスト**: コード変更、lint、typecheck、test実行
+2. **コミット・プッシュ**: `git add . && git commit && git push`
+3. **🎯 gh pr create 実行（必須）**: PR作成コマンドを必ず実行
+4. **PR URL報告**: 作成されたPR URLをGitHub commentで報告
+
 ## 言語設定
 
 **重要**: このプロジェクトでは日本語を主言語として使用します。
@@ -141,6 +179,11 @@ Claude Codeは以下の手順に従って作業を実行する：
    - 古いブランチは適切にクリーンアップ
 
 ### PR作成ルール (強化版)
+
+#### 🎯 最重要: PR作成の必須実行
+- **FAIL-FAST原則**: PR作成に失敗した場合、即座に作業を停止してエラー報告
+- **NO ALTERNATIVES**: 手動リンクによる代替は一切禁止
+- **ENFORCEMENT**: `gh pr create` コマンドの実行は絶対義務
 
 #### 必須要件
 - **必須プロセス**: 全ての修正作業はPRを通して行う
