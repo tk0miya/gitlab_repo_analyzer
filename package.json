@@ -1,14 +1,23 @@
 {
   "name": "gitlab_repo_analyzer",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "dev": "node --loader tsx/esm src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "GitLabリポジトリを分析するNode.jsベースのツール",
   "devDependencies": {
-    "@anthropic-ai/claude-code": "^1.0.43"
-  }
+    "@anthropic-ai/claude-code": "^1.0.43",
+    "@types/node": "^22.16.3",
+    "esbuild": "^0.24.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {}
 }
