@@ -7,6 +7,9 @@ npm-debug.log*
 # TypeScript build output
 dist/
 
+# Test coverage
+coverage/
+
 # OS generated files
 .DS_Store
 Thumbs.db
