@@ -9,21 +9,13 @@ import type {
 	InternalAxiosRequestConfig,
 } from "axios";
 import axios from "axios";
-import type {
-	GitLabCommit,
-	GitLabCommitsQuery,
-	GitLabContributor,
-} from "./types/commit.js";
+import type { GitLabCommit, GitLabCommitsQuery } from "./types/commit.js";
 import type { GitLabClientConfig } from "./types/common.js";
 import type {
 	GitLabMergeRequest,
 	GitLabMergeRequestsQuery,
 } from "./types/merge-request.js";
-import type {
-	GitLabCreateNoteRequest,
-	GitLabNote,
-	GitLabNotesQuery,
-} from "./types/note.js";
+import type { GitLabNote, GitLabNotesQuery } from "./types/note.js";
 import type { GitLabProject } from "./types/project.js";
 import type { GitLabUser } from "./types/user.js";
 
@@ -205,28 +197,39 @@ export class GitLabApiClient {
 	}
 
 	/**
-	 * プロジェクトのコントリビューター統計を取得
-	 * GET /api/v4/projects/:id/repository/contributors
+	 * プロジェクトの全コミットを自動ページネーションで取得
+	 * 大量のコミットが存在する場合に有用
 	 */
-	async getContributors(projectId: string): Promise<GitLabContributor[]> {
-		const encodedId = encodeURIComponent(projectId);
-		const response = await this.client.get(
-			`/api/v4/projects/${encodedId}/repository/contributors`,
-		);
-		return response.data;
-	}
+	async getAllCommits(
+		projectId: string,
+		query?: Omit<GitLabCommitsQuery, "page" | "per_page">,
+	): Promise<GitLabCommit[]> {
+		const allCommits: GitLabCommit[] = [];
+		let page = 1;
+		const perPage = 100; // GitLab APIの最大値
 
-	/**
-	 * 特定のコミット詳細情報を取得
-	 * GET /api/v4/projects/:id/repository/commits/:sha
-	 */
-	async getCommit(projectId: string, sha: string): Promise<GitLabCommit> {
-		const encodedId = encodeURIComponent(projectId);
-		const encodedSha = encodeURIComponent(sha);
-		const response = await this.client.get(
-			`/api/v4/projects/${encodedId}/repository/commits/${encodedSha}`,
-		);
-		return response.data;
+		while (true) {
+			const commits = await this.getCommits(projectId, {
+				...query,
+				page,
+				per_page: perPage,
+			});
+
+			if (commits.length === 0) {
+				break;
+			}
+
+			allCommits.push(...commits);
+
+			// ページサイズ未満の結果が返された場合、最後のページと判断
+			if (commits.length < perPage) {
+				break;
+			}
+
+			page++;
+		}
+
+		return allCommits;
 	}
 
 	// ===== Merge Requests API =====
@@ -278,6 +281,42 @@ export class GitLabApiClient {
 		return response.data;
 	}
 
+	/**
+	 * プロジェクトの全マージリクエストを自動ページネーションで取得
+	 * 大量のMRが存在する場合に有用
+	 */
+	async getAllMergeRequests(
+		projectId: string,
+		query?: Omit<GitLabMergeRequestsQuery, "page" | "per_page">,
+	): Promise<GitLabMergeRequest[]> {
+		const allMergeRequests: GitLabMergeRequest[] = [];
+		let page = 1;
+		const perPage = 100; // GitLab APIの最大値
+
+		while (true) {
+			const mergeRequests = await this.getMergeRequests(projectId, {
+				...query,
+				page,
+				per_page: perPage,
+			});
+
+			if (mergeRequests.length === 0) {
+				break;
+			}
+
+			allMergeRequests.push(...mergeRequests);
+
+			// ページサイズ未満の結果が返された場合、最後のページと判断
+			if (mergeRequests.length < perPage) {
+				break;
+			}
+
+			page++;
+		}
+
+		return allMergeRequests;
+	}
+
 	// ===== Notes API =====
 
 	/**
@@ -309,35 +348,43 @@ export class GitLabApiClient {
 	}
 
 	/**
-	 * マージリクエストに新しいノート（コメント）を作成
-	 * POST /api/v4/projects/:id/merge_requests/:merge_request_iid/notes
+	 * マージリクエストの全ノート（コメント）を自動ページネーションで取得
+	 * 大量のコメントが存在する場合に有用
 	 */
-	async createMergeRequestNote(
+	async getAllMergeRequestNotes(
 		projectId: string,
 		mergeRequestIid: number,
-		noteData: GitLabCreateNoteRequest,
-	): Promise<GitLabNote> {
-		const encodedId = encodeURIComponent(projectId);
-		const response = await this.client.post(
-			`/api/v4/projects/${encodedId}/merge_requests/${mergeRequestIid}/notes`,
-			noteData,
-		);
-		return response.data;
-	}
+		query?: Omit<GitLabNotesQuery, "page" | "per_page">,
+	): Promise<GitLabNote[]> {
+		const allNotes: GitLabNote[] = [];
+		let page = 1;
+		const perPage = 100; // GitLab APIの最大値
 
-	/**
-	 * 特定のノート（コメント）詳細情報を取得
-	 * GET /api/v4/projects/:id/merge_requests/:merge_request_iid/notes/:note_id
-	 */
-	async getMergeRequestNote(
-		projectId: string,
-		mergeRequestIid: number,
-		noteId: number,
-	): Promise<GitLabNote> {
-		const encodedId = encodeURIComponent(projectId);
-		const response = await this.client.get(
-			`/api/v4/projects/${encodedId}/merge_requests/${mergeRequestIid}/notes/${noteId}`,
-		);
-		return response.data;
+		while (true) {
+			const notes = await this.getMergeRequestNotes(
+				projectId,
+				mergeRequestIid,
+				{
+					...query,
+					page,
+					per_page: perPage,
+				},
+			);
+
+			if (notes.length === 0) {
+				break;
+			}
+
+			allNotes.push(...notes);
+
+			// ページサイズ未満の結果が返された場合、最後のページと判断
+			if (notes.length < perPage) {
+				break;
+			}
+
+			page++;
+		}
+
+		return allNotes;
 	}
 }

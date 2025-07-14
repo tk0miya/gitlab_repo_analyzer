@@ -3,62 +3,58 @@
  */
 
 /**
- * GitLabマージリクエスト情報
+ * GitLabマージリクエスト情報（分析用最適化版）
  * GET /api/v4/projects/:id/merge_requests のレスポンス型
  */
 export interface GitLabMergeRequest {
+	// 必須識別子
 	id: number;
 	iid: number;
 	project_id: number;
+
+	// 基本情報
 	title: string;
 	description: string | null;
 	state: "opened" | "closed" | "merged";
+
+	// 時間情報（分析の核心）
 	created_at: string;
 	updated_at: string;
 	merged_at: string | null;
 	closed_at: string | null;
+
+	// ブランチ情報
 	target_branch: string;
 	source_branch: string;
-	upvotes: number;
-	downvotes: number;
+
+	// 人的情報（チーム分析用）
 	author: GitLabMergeRequestUser;
-	assignee: GitLabMergeRequestUser | null;
 	assignees: GitLabMergeRequestUser[];
 	reviewers: GitLabMergeRequestUser[];
-	source_project_id: number;
-	target_project_id: number;
-	labels: string[];
-	draft: boolean;
-	work_in_progress: boolean;
-	milestone: GitLabMilestone | null;
-	merge_when_pipeline_succeeds: boolean;
-	merge_status: string;
-	merge_error: string | null;
-	sha: string;
-	merge_commit_sha: string | null;
-	squash_commit_sha: string | null;
+
+	// メトリクス（エンゲージメント分析用）
+	upvotes: number;
+	downvotes: number;
 	user_notes_count: number;
-	discussion_locked: boolean | null;
-	should_remove_source_branch: boolean | null;
-	force_remove_source_branch: boolean;
-	allow_collaboration: boolean;
-	allow_maintainer_to_push: boolean;
-	web_url: string;
-	references: {
-		short: string;
-		relative: string;
-		full: string;
-	};
-	time_stats: {
+
+	// 作業時間統計（生産性分析用）
+	time_stats?: {
 		time_estimate: number;
 		total_time_spent: number;
 		human_time_estimate: string | null;
 		human_total_time_spent: string | null;
 	};
-	squash: boolean;
+
+	// 状態フラグ
+	draft: boolean;
 	has_conflicts: boolean;
-	blocking_discussions_resolved: boolean;
-	approvals_before_merge: number | null;
+
+	// 参照URL
+	web_url: string;
+
+	// コミット情報
+	sha: string;
+	merge_commit_sha: string | null;
 }
 
 /**
@@ -70,21 +66,6 @@ export interface GitLabMergeRequestUser {
 	name: string;
 	state: string;
 	avatar_url: string | null;
-	web_url: string;
-}
-
-/**
- * GitLabマイルストーン情報
- */
-export interface GitLabMilestone {
-	id: number;
-	title: string;
-	description: string | null;
-	state: "active" | "closed";
-	created_at: string;
-	updated_at: string;
-	group_id: number | null;
-	project_id: number;
 	web_url: string;
 }
 

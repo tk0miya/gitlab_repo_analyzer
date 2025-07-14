@@ -28,18 +28,6 @@ export interface GitLabCommit {
 }
 
 /**
- * GitLabコントリビューター統計
- * GET /api/v4/projects/:id/repository/contributors のレスポンス型
- */
-export interface GitLabContributor {
-	name: string;
-	email: string;
-	commits: number;
-	additions: number;
-	deletions: number;
-}
-
-/**
  * コミット取得のクエリパラメータ
  */
 export interface GitLabCommitsQuery {

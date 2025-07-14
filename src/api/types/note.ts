@@ -49,12 +49,3 @@ export interface GitLabNotesQuery {
 	per_page?: number;
 	page?: number;
 }
-
-/**
- * ノート作成のリクエストパラメータ
- */
-export interface GitLabCreateNoteRequest {
-	body: string;
-	internal?: boolean;
-	confidential?: boolean;
-}

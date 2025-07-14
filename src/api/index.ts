@@ -8,7 +8,6 @@ export { GitLabApiClient } from "./gitlab-client.js";
 export type {
 	GitLabCommit,
 	GitLabCommitsQuery,
-	GitLabContributor,
 } from "./types/commit.js";
 // 型定義
 export type { GitLabClientConfig } from "./types/common.js";
@@ -17,11 +16,9 @@ export type {
 	GitLabMergeRequest,
 	GitLabMergeRequestsQuery,
 	GitLabMergeRequestUser,
-	GitLabMilestone,
 } from "./types/merge-request.js";
 // Notes API
 export type {
-	GitLabCreateNoteRequest,
 	GitLabNote,
 	GitLabNoteAuthor,
 	GitLabNotesQuery,
