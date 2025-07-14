@@ -7,7 +7,6 @@ export const GitLabConfigSchema = z.object({
 	token: z.string().min(1, "GitLab TOKEN は必須です"),
 	// 固定値（設定不可）
 	url: z.literal("https://gitlab.com"),
-	apiVersion: z.literal("v4"),
 	timeout: z.literal(30000),
 });
 

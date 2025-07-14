@@ -29,7 +29,6 @@ export class ConfigLoader {
 			gitlab: {
 				// 固定値
 				url: "https://gitlab.com" as const,
-				apiVersion: "v4" as const,
 				timeout: 30000 as const,
 				// 環境変数から取得
 				token: process.env.GITLAB_TOKEN || "",

@@ -60,7 +60,6 @@ describe("ConfigLoader", () => {
 
 		// GitLab設定の固定値を確認
 		expect(config.gitlab.url).toBe("https://gitlab.com");
-		expect(config.gitlab.apiVersion).toBe("v4");
 		expect(config.gitlab.timeout).toBe(30000);
 	});
 
