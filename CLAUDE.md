@@ -64,6 +64,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **ランタイム**: Node.js 22
 - **開発環境**: VS Code Dev Containers
 - **パッケージマネージャー**: npm
+- **データベース**: PostgreSQL 15+
+- **クエリビルダー**: Knex.js
+- **型安全性**: TypeScript
 
 ## コマンド
 
@@ -72,31 +75,82 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # 依存関係のインストール
 npm install
 
-# アプリケーションの実行（index.js作成後）
-node index.js
+# アプリケーションの実行
+npm run dev
 
-# テストの実行（テストフレームワーク設定後）
+# TypeScript型チェック
+npm run typecheck
+
+# リンター実行
+npm run lint
+
+# リンター自動修正
+npm run lint:fix
+
+# テストの実行
 npm test
+
+# ビルド実行
+npm run build
+```
+
+### データベース
+```bash
+# マイグレーション実行
+npm run db:migrate
+
+# マイグレーションロールバック
+npm run db:rollback
+
+# シードデータ実行
+npm run db:seed
+
+# データベース状態確認
+npx tsx src/database/cli.ts status
+
+# データベースヘルスチェック
+npx tsx src/database/cli.ts health
+
+# データベースリセット
+npx tsx src/database/cli.ts reset
 ```
 
 ## アーキテクチャ
 
-このプロジェクトは初期セットアップ段階です。実装時の指針：
+### システム構成
 
-1. **エントリーポイント**: `index.js`をメインエントリーポイントとして作成（package.jsonで参照済み）
-2. **GitLab統合**: GitLab APIを使用してリポジトリ分析を実装
-3. **分析機能**: 以下の実装を検討：
+1. **エントリーポイント**: `src/index.ts` - アプリケーションのメインエントリーポイント
+2. **データベース層**: PostgreSQL + Knex.js
+   - マイグレーション機能（`src/database/migrations/`）
+   - 型安全なスキーマ定義（`src/database/types.ts`）
+   - リポジトリパターン（`src/database/index.ts`）
+3. **GitLab統合**: GitLab APIクライアント（`src/api/`）
+4. **分析機能**: 以下の実装を検討：
    - リポジトリ構造分析
    - コード品質メトリクス
    - 依存関係分析
    - セキュリティ脆弱性スキャン
    - コミット履歴分析
 
+### データベーススキーマ
+
+実装済みテーブル：
+- **users** - GitLabユーザー情報
+- **projects** - GitLabプロジェクト情報
+- **project_members** - プロジェクトメンバーシップ
+- **merge_requests** - マージリクエスト
+- **commits** - コミット履歴
+- **commit_merge_requests** - コミットとMRの関連（多対多）
+- **comments** - コメント（MR、コミット等へのコメント）
+
+詳細は `src/database/README.md` を参照。
+
 ## 開発ガイドライン
 
 1. **プロジェクト構造**: コードを論理的なモジュールに整理：
    - `/src` - メインソースコード
-   - `/lib` - 再利用可能なユーティリティ
+   - `/src/database` - データベース関連（マイグレーション、型定義、接続管理）
+   - `/src/api` - GitLab API統合
    - `/test` - テストファイル
    - `/config` - 設定ファイル
 
@@ -104,19 +158,33 @@ npm test
 
 3. **設定**: GitLab APIトークンと設定には環境変数を使用
 
-4. **テスト**: 機能追加前にテストフレームワーク（JestまたはMocha）をセットアップ
+4. **データベース**: 
+   - マイグレーションファーストでスキーマ変更を管理
+   - TypeScript型定義でデータ構造を保証
+   - リポジトリパターンでデータアクセスを抽象化
 
-5. **リンティング**: コードの一貫性のためESLint設定を追加
+5. **テスト**: Vitestを使用したテストフレームワーク設定済み
+
+6. **リンティング**: Biomeを使用したコード品質チェック
 
 ## 次のステップ
 
 プロジェクト開発時：
-1. 基本的なプロジェクト構造を作成
-2. GitLab API認証をセットアップ
-3. コア分析機能を実装
-4. 適切なエラーハンドリングとロギングを追加
-5. 包括的なテストを作成
-6. ドキュメントを追加
+1. ✅ **基本的なプロジェクト構造を作成** - 完了
+2. ✅ **データベーススキーマ設計・実装** - 完了（フェーズ2-1）
+3. **GitLab APIデータ取得機能の実装** - 次のフェーズ
+4. **データ分析・可視化機能の実装**
+5. **適切なエラーハンドリングとロギングを追加**
+6. **包括的なテストを作成**
+7. **ドキュメントを追加**
+
+### 完了した実装
+- PostgreSQL + Knex.js によるデータベース基盤
+- 8つのマイグレーションファイル（テーブル作成、インデックス、全文検索）
+- TypeScript型定義による型安全性
+- リポジトリパターンによるデータアクセス抽象化
+- データベース管理CLI（状態確認、ヘルスチェック等）
+- 包括的なテストスイート
 
 ## 開発ワークフロー
 
