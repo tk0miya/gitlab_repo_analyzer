@@ -65,6 +65,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **開発環境**: VS Code Dev Containers
 - **パッケージマネージャー**: npm
 
+## 設定管理
+
+このプロジェクトは**環境変数のみ**で設定管理を行います。
+環境変数の設定方法は `.env.example` ファイルを参照してください。
 ## コマンド
 
 ### 開発
