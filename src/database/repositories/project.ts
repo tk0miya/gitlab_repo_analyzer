@@ -79,29 +79,23 @@ export class ProjectRepository extends BaseRepository {
 	async findAll(options?: {
 		orderBy?: "name" | "created_at" | "updated_at";
 		order?: "asc" | "desc";
-		onlyActive?: boolean;
 	}): Promise<Project[]> {
 		const baseQuery = this.db.select().from(projects);
-
-		// アクティブなプロジェクトのみ取得
-		const filteredQuery = options?.onlyActive
-			? baseQuery.where(eq(projects.isActive, true))
-			: baseQuery;
 
 		// ソート
 		if (options?.orderBy) {
 			const orderFn = options.order === "desc" ? desc : asc;
 			switch (options.orderBy) {
 				case "name":
-					return await filteredQuery.orderBy(orderFn(projects.name));
+					return await baseQuery.orderBy(orderFn(projects.name));
 				case "created_at":
-					return await filteredQuery.orderBy(orderFn(projects.createdAt));
+					return await baseQuery.orderBy(orderFn(projects.createdAt));
 				case "updated_at":
-					return await filteredQuery.orderBy(orderFn(projects.updatedAt));
+					return await baseQuery.orderBy(orderFn(projects.updatedAt));
 			}
 		}
 
-		return await filteredQuery;
+		return await baseQuery;
 	}
 
 	/**
@@ -116,25 +110,4 @@ export class ProjectRepository extends BaseRepository {
 		return result.length > 0;
 	}
 
-	/**
-	 * プロジェクトの非アクティブ化
-	 */
-	async deactivate(id: number): Promise<boolean> {
-		const result = await this.db
-			.update(projects)
-			.set({ isActive: false, updatedAt: new Date() })
-			.where(eq(projects.id, id));
-		return (result.rowCount ?? 0) > 0;
-	}
-
-	/**
-	 * プロジェクトの再アクティブ化
-	 */
-	async reactivate(id: number): Promise<boolean> {
-		const result = await this.db
-			.update(projects)
-			.set({ isActive: true, updatedAt: new Date() })
-			.where(eq(projects.id, id));
-		return (result.rowCount ?? 0) > 0;
-	}
 }

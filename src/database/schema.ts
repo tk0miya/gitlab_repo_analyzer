@@ -27,7 +27,6 @@ export const projects = pgTable(
 		updatedAt: timestamp("updated_at").defaultNow(),
 		gitlabCreatedAt: timestamp("gitlab_created_at"),
 		gitlabUpdatedAt: timestamp("gitlab_updated_at"),
-		isActive: boolean("is_active").default(true),
 	},
 	(table) => ({
 		gitlabIdIdx: index("idx_projects_gitlab_id").on(table.gitlabId),
