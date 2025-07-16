@@ -61,39 +61,34 @@ export class SyncLogRepository extends BaseRepository {
 			offset?: number;
 		},
 	): Promise<SyncLog[]> {
-		let whereConditions = eq(syncLogs.projectId, projectId);
+		const conditions = [eq(syncLogs.projectId, projectId)];
 
 		// 同期タイプフィルター
 		if (options?.syncType) {
-			whereConditions = and(
-				whereConditions,
-				eq(syncLogs.syncType, options.syncType),
-			);
+			conditions.push(eq(syncLogs.syncType, options.syncType));
 		}
 
 		// ステータスフィルター
 		if (options?.status) {
-			whereConditions = and(
-				whereConditions,
-				eq(syncLogs.status, options.status),
-			);
+			conditions.push(eq(syncLogs.status, options.status));
 		}
 
-		let baseQuery = this.db
+		const query = this.db
 			.select()
 			.from(syncLogs)
-			.where(whereConditions)
+			.where(and(...conditions))
 			.orderBy(desc(syncLogs.startedAt));
 
 		// リミット・オフセット
-		if (options?.limit) {
-			baseQuery = baseQuery.limit(options.limit);
-		}
-		if (options?.offset) {
-			baseQuery = baseQuery.offset(options.offset);
+		if (options?.limit && options?.offset) {
+			return await query.limit(options.limit).offset(options.offset);
+		} else if (options?.limit) {
+			return await query.limit(options.limit);
+		} else if (options?.offset) {
+			return await query.offset(options.offset);
 		}
 
-		return await baseQuery;
+		return await query;
 	}
 
 	/**
@@ -146,7 +141,7 @@ export class SyncLogRepository extends BaseRepository {
 			offset?: number;
 		},
 	): Promise<SyncLog[]> {
-		let baseQuery = this.db
+		const query = this.db
 			.select()
 			.from(syncLogs)
 			.where(
@@ -155,14 +150,15 @@ export class SyncLogRepository extends BaseRepository {
 			.orderBy(desc(syncLogs.startedAt));
 
 		// リミット・オフセット
-		if (options?.limit) {
-			baseQuery = baseQuery.limit(options.limit);
-		}
-		if (options?.offset) {
-			baseQuery = baseQuery.offset(options.offset);
+		if (options?.limit && options?.offset) {
+			return await query.limit(options.limit).offset(options.offset);
+		} else if (options?.limit) {
+			return await query.limit(options.limit);
+		} else if (options?.offset) {
+			return await query.offset(options.offset);
 		}
 
-		return await baseQuery;
+		return await query;
 	}
 
 	/**
@@ -310,16 +306,18 @@ export class SyncLogRepository extends BaseRepository {
 	 * 同期ログ数の取得
 	 */
 	async count(projectId?: number, status?: string): Promise<number> {
-		let baseQuery = this.db
+		const baseQuery = this.db
 			.select({ count: sql<number>`COUNT(*)::int` })
 			.from(syncLogs);
 
 		if (projectId && status) {
-			baseQuery = baseQuery.where(
+			const result = await baseQuery.where(
 				and(eq(syncLogs.projectId, projectId), eq(syncLogs.status, status)),
 			);
+			return result[0].count;
 		} else if (projectId) {
-			baseQuery = baseQuery.where(eq(syncLogs.projectId, projectId));
+			const result = await baseQuery.where(eq(syncLogs.projectId, projectId));
+			return result[0].count;
 		}
 
 		const result = await baseQuery;

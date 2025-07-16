@@ -81,30 +81,27 @@ export class ProjectRepository extends BaseRepository {
 		order?: "asc" | "desc";
 		onlyActive?: boolean;
 	}): Promise<Project[]> {
-		let baseQuery = this.db.select().from(projects);
+		const baseQuery = this.db.select().from(projects);
 
 		// アクティブなプロジェクトのみ取得
-		if (options?.onlyActive) {
-			baseQuery = baseQuery.where(eq(projects.isActive, true));
-		}
+		const filteredQuery = options?.onlyActive
+			? baseQuery.where(eq(projects.isActive, true))
+			: baseQuery;
 
 		// ソート
 		if (options?.orderBy) {
 			const orderFn = options.order === "desc" ? desc : asc;
 			switch (options.orderBy) {
 				case "name":
-					baseQuery = baseQuery.orderBy(orderFn(projects.name));
-					break;
+					return await filteredQuery.orderBy(orderFn(projects.name));
 				case "created_at":
-					baseQuery = baseQuery.orderBy(orderFn(projects.createdAt));
-					break;
+					return await filteredQuery.orderBy(orderFn(projects.createdAt));
 				case "updated_at":
-					baseQuery = baseQuery.orderBy(orderFn(projects.updatedAt));
-					break;
+					return await filteredQuery.orderBy(orderFn(projects.updatedAt));
 			}
 		}
 
-		return await baseQuery;
+		return await filteredQuery;
 	}
 
 	/**

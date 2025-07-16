@@ -165,7 +165,7 @@ export class CommitRepository extends BaseRepository {
 			order?: "asc" | "desc";
 		},
 	): Promise<Commit[]> {
-		let baseQuery = this.db
+		const baseQuery = this.db
 			.select()
 			.from(commits)
 			.where(
@@ -179,12 +179,10 @@ export class CommitRepository extends BaseRepository {
 		// ソート
 		const orderFn = options?.order === "asc" ? asc : desc;
 		if (options?.orderBy === "created_at") {
-			baseQuery = baseQuery.orderBy(orderFn(commits.createdAt));
+			return await baseQuery.orderBy(orderFn(commits.createdAt));
 		} else {
-			baseQuery = baseQuery.orderBy(orderFn(commits.authorDate));
+			return await baseQuery.orderBy(orderFn(commits.authorDate));
 		}
-
-		return await baseQuery;
 	}
 
 	/**
@@ -249,12 +247,13 @@ export class CommitRepository extends BaseRepository {
 	 * コミット数の取得
 	 */
 	async count(projectId?: number): Promise<number> {
-		let baseQuery = this.db
+		const baseQuery = this.db
 			.select({ count: sql<number>`COUNT(*)::int` })
 			.from(commits);
 
 		if (projectId) {
-			baseQuery = baseQuery.where(eq(commits.projectId, projectId));
+			const result = await baseQuery.where(eq(commits.projectId, projectId));
+			return result[0].count;
 		}
 
 		const result = await baseQuery;
