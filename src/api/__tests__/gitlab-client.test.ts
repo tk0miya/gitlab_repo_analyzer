@@ -5,12 +5,59 @@
 import axios from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GitLabApiClient } from "../gitlab-client.js";
+import type { GitLabCommit } from "../types/commit.js";
 import type { GitLabProject } from "../types/project.js";
 import type { GitLabUser } from "../types/user.js";
 
 // axiosをモック
 vi.mock("axios");
 const mockedAxios = vi.mocked(axios);
+
+// テストヘルパー関数: モックコミットデータを生成
+function createMockCommit(overrides: Partial<GitLabCommit> = {}): GitLabCommit {
+	const baseCommit: GitLabCommit = {
+		id: "commit123",
+		short_id: "commit123",
+		title: "Test commit",
+		message: "Test commit message",
+		author_name: "Test Author",
+		author_email: "test@example.com",
+		authored_date: "2023-01-01T00:00:00.000Z",
+		committer_name: "Test Committer",
+		committer_email: "test@example.com",
+		committed_date: "2023-01-01T00:00:00.000Z",
+		web_url: "https://gitlab.example.com/project/commit/commit123",
+		parent_ids: ["parent123"],
+		created_at: "2023-01-01T00:00:00.000Z",
+	};
+
+	return {
+		...baseCommit,
+		...overrides,
+	};
+}
+
+// テストヘルパー関数: 複数のモックコミットデータを生成
+function createMockCommits(
+	count: number,
+	baseOverrides: Partial<GitLabCommit> = {},
+): GitLabCommit[] {
+	return Array.from({ length: count }, (_, index) => {
+		const commitIndex = index + 1;
+		return createMockCommit({
+			id: `commit${commitIndex}`,
+			short_id: `commit${commitIndex}`,
+			title: `Test commit ${commitIndex}`,
+			message: `Test commit message ${commitIndex}`,
+			authored_date: `2023-01-0${commitIndex}T00:00:00.000Z`,
+			committed_date: `2023-01-0${commitIndex}T00:00:00.000Z`,
+			web_url: `https://gitlab.example.com/project/commit/commit${commitIndex}`,
+			parent_ids: [`parent${commitIndex}`],
+			created_at: `2023-01-0${commitIndex}T00:00:00.000Z`,
+			...baseOverrides,
+		});
+	});
+}
 
 describe("GitLabApiClient", () => {
 	const mockConfig = {
@@ -149,6 +196,127 @@ describe("GitLabApiClient", () => {
 			const result = await client.testConnection();
 
 			expect(result).toBe(false);
+		});
+	});
+
+	describe("getCommits", () => {
+		let client: GitLabApiClient;
+
+		beforeEach(() => {
+			client = new GitLabApiClient(mockConfig);
+		});
+
+		it("プロジェクトのコミット一覧を正常に取得できる（ジェネレータ）", async () => {
+			const mockCommits: GitLabCommit[] = [createMockCommit()];
+
+			mockAxiosInstance.get.mockResolvedValue({
+				data: mockCommits,
+				headers: {
+					"x-total": "1",
+					"x-page": "1",
+					"x-per-page": "20",
+					"x-next-page": "",
+					"x-prev-page": "",
+				},
+			});
+
+			const generator = client.getCommits("123");
+			const result = await generator.next();
+
+			expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+				"/api/v4/projects/123/repository/commits?page=1&per_page=20",
+			);
+			expect(result.value).toEqual(mockCommits);
+			expect(result.done).toBe(false);
+
+			// 次の呼び出しで終了することを確認
+			const nextResult = await generator.next();
+			expect(nextResult.done).toBe(true);
+		});
+
+		it("オプションパラメータを正しく処理する", async () => {
+			const mockCommits: GitLabCommit[] = [];
+
+			mockAxiosInstance.get.mockResolvedValue({
+				data: mockCommits,
+				headers: {
+					"x-total": "0",
+					"x-page": "2",
+					"x-per-page": "50",
+					"x-next-page": "",
+					"x-prev-page": "",
+				},
+			});
+
+			const options = {
+				ref_name: "main",
+				since: "2023-01-01",
+				page: 2,
+				per_page: 50,
+				with_stats: true,
+			};
+
+			const generator = client.getCommits("123", options);
+			await generator.next();
+
+			expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+				"/api/v4/projects/123/repository/commits?ref_name=main&since=2023-01-01&page=2&per_page=50&with_stats=true",
+			);
+		});
+
+		it("複数ページを順次取得できる", async () => {
+			const mockCommitsPage1: GitLabCommit[] = createMockCommits(1);
+			const mockCommitsPage2: GitLabCommit[] = createMockCommits(1).map(
+				(commit) => ({
+					...commit,
+					id: "commit2",
+					short_id: "commit2",
+					title: "Test commit 2",
+					message: "Test commit message 2",
+					authored_date: "2023-01-02T00:00:00.000Z",
+					committed_date: "2023-01-02T00:00:00.000Z",
+					web_url: "https://gitlab.example.com/project/commit/commit2",
+					parent_ids: ["parent2"],
+					created_at: "2023-01-02T00:00:00.000Z",
+				}),
+			);
+
+			mockAxiosInstance.get
+				.mockResolvedValueOnce({
+					data: mockCommitsPage1,
+					headers: {
+						"x-total": "2",
+						"x-page": "1",
+						"x-per-page": "1",
+						"x-next-page": "2",
+						"x-prev-page": "",
+					},
+				})
+				.mockResolvedValueOnce({
+					data: mockCommitsPage2,
+					headers: {
+						"x-total": "2",
+						"x-page": "2",
+						"x-per-page": "1",
+						"x-next-page": "",
+						"x-prev-page": "1",
+					},
+				});
+
+			const generator = client.getCommits("123", { per_page: 1 });
+
+			const firstPage = await generator.next();
+			expect(firstPage.value).toEqual(mockCommitsPage1);
+			expect(firstPage.done).toBe(false);
+
+			const secondPage = await generator.next();
+			expect(secondPage.value).toEqual(mockCommitsPage2);
+			expect(secondPage.done).toBe(false);
+
+			const endResult = await generator.next();
+			expect(endResult.done).toBe(true);
+
+			expect(mockAxiosInstance.get).toHaveBeenCalledTimes(2);
 		});
 	});
 
