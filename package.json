@@ -17,7 +17,6 @@
 		"all": "npm run lint && npm run typecheck && npm run test && npm run build",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "node --loader tsx/esm src/database/migrate.ts",
-		"db:studio": "drizzle-kit studio",
 		"db:push": "drizzle-kit push",
 		"db:drop": "drizzle-kit drop"
 	},
