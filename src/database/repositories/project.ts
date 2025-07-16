@@ -109,5 +109,4 @@ export class ProjectRepository extends BaseRepository {
 			.limit(1);
 		return result.length > 0;
 	}
-
 }
