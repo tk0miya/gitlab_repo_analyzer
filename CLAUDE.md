@@ -76,11 +76,53 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # 依存関係のインストール
 npm install
 
-# アプリケーションの実行（index.js作成後）
-node index.js
+# 開発時の実行（TypeScript直接実行）
+npm run dev
 
-# テストの実行（テストフレームワーク設定後）
-npm test
+# 本番ビルド
+npm run build
+
+# ビルド後のアプリケーション実行
+npm run start
+
+# すべてのチェックを実行（lint + typecheck + test + build）
+npm run all
+```
+
+### 品質チェック
+```bash
+# TypeScript型チェック
+npm run typecheck
+
+# リンター実行
+npm run lint
+
+# リンター自動修正
+npm run lint:fix
+
+# コードフォーマット
+npm run format
+
+# テスト実行
+npm run test
+
+# テスト（監視モード）
+npm run test:watch
+```
+
+### データベース管理
+```bash
+# スキーマからマイグレーションファイル生成
+npm run db:generate
+
+# マイグレーション実行
+npm run db:migrate
+
+# スキーマを直接DBにプッシュ（開発時）
+npm run db:push
+
+# データベースドロップ
+npm run db:drop
 ```
 
 ## アーキテクチャ
