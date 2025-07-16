@@ -9,6 +9,7 @@ import type {
 	InternalAxiosRequestConfig,
 } from "axios";
 import axios from "axios";
+import type { GitLabCommit, GitLabCommitsQuery } from "./types/commit.js";
 import type { GitLabClientConfig } from "./types/common.js";
 import type { GitLabProject } from "./types/project.js";
 import type { GitLabUser } from "./types/user.js";
@@ -131,6 +132,8 @@ export class GitLabApiClient {
 	/**
 	 * 現在のユーザー情報を取得
 	 * GET /api/v4/user
+	 *
+	 * 参考: https://docs.gitlab.com/ee/api/users.html#for-user
 	 */
 	async getCurrentUser(): Promise<GitLabUser> {
 		const response = await this.client.get("/api/v4/user");
@@ -140,6 +143,8 @@ export class GitLabApiClient {
 	/**
 	 * プロジェクト情報を取得
 	 * GET /api/v4/projects/:id
+	 *
+	 * 参考: https://docs.gitlab.com/ee/api/projects.html#get-single-project
 	 */
 	async getProject(id: string): Promise<GitLabProject> {
 		// プロジェクトIDをURLエンコード
@@ -158,6 +163,64 @@ export class GitLabApiClient {
 			return true;
 		} catch {
 			return false;
+		}
+	}
+
+	/**
+	 * プロジェクトのコミット一覧を取得（ジェネレータ）
+	 * GET /api/v4/projects/:id/repository/commits
+	 *
+	 * 参考: https://docs.gitlab.com/ee/api/commits.html#list-repository-commits
+	 */
+	async *getCommits(
+		projectId: string,
+		options: GitLabCommitsQuery = {},
+	): AsyncGenerator<GitLabCommit[], void, unknown> {
+		const encodedId = encodeURIComponent(projectId);
+
+		// デフォルト値を設定
+		const defaultOptions = {
+			per_page: 20,
+			page: 1,
+			...options,
+		};
+
+		let currentPage = defaultOptions.page;
+
+		while (true) {
+			// クエリパラメータを構築
+			const params = new URLSearchParams();
+			if (defaultOptions.ref_name)
+				params.append("ref_name", defaultOptions.ref_name);
+			if (defaultOptions.since) params.append("since", defaultOptions.since);
+			if (defaultOptions.until) params.append("until", defaultOptions.until);
+			params.append("page", currentPage.toString());
+			params.append("per_page", defaultOptions.per_page.toString());
+			if (defaultOptions.with_stats) params.append("with_stats", "true");
+			if (defaultOptions.path) params.append("path", defaultOptions.path);
+			if (defaultOptions.author) params.append("author", defaultOptions.author);
+			if (defaultOptions.all) params.append("all", "true");
+
+			const url = `/api/v4/projects/${encodedId}/repository/commits${
+				params.toString() ? `?${params.toString()}` : ""
+			}`;
+
+			const response = await this.client.get(url);
+
+			// コミットがない場合は終了
+			if (!response.data || response.data.length === 0) {
+				break;
+			}
+
+			yield response.data;
+
+			// 次のページがない場合は終了
+			const nextPage = response.headers["x-next-page"];
+			if (!nextPage) {
+				break;
+			}
+
+			currentPage++;
 		}
 	}
 }
