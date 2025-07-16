@@ -19,13 +19,6 @@ export abstract class BaseRepository {
 	}
 
 	/**
-	 * データベースインスタンスを設定
-	 */
-	protected setDatabase(db: NodePgDatabase<typeof schema>): void {
-		this.db = db;
-	}
-
-	/**
 	 * トランザクション内でリポジトリインスタンスを作成
 	 */
 	protected withTransaction(tx: NodePgDatabase<typeof schema>): this {
