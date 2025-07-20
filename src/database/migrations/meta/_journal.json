@@ -8,6 +8,13 @@
 			"when": 1752999371966,
 			"tag": "0000_quick_bastion",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1753028209659,
+			"tag": "0001_tiny_triton",
+			"breakpoints": true
 		}
 	]
 }

@@ -5,6 +5,11 @@
  * 統一的なアクセスポイントを提供します。
  */
 
+// コミット関連のファクトリ関数
+export {
+	createCommitData,
+	createMultipleCommitsData,
+} from "./commits.js";
 // プロジェクト関連のファクトリ関数
 export {
 	createMultipleProjectsData,
