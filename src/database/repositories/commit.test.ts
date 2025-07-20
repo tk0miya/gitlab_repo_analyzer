@@ -1,14 +1,10 @@
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { beforeEach, describe, expect, it } from "vitest";
+import { createTestCommit, createTestProject } from "../__tests__/factories.js";
+import { cleanupTestDatabase, setupTestDatabase } from "../__tests__/setup.js";
+import type * as schema from "../schema.js";
 import { CommitRepository } from "./commit.js";
 import { ProjectRepository } from "./project.js";
-import type * as schema from "../schema.js";
-import {
-	cleanupTestDatabase,
-	createTestCommit,
-	createTestProject,
-	setupTestDatabase,
-} from "../__tests__/setup.js";
 
 describe("CommitRepository", () => {
 	let db: NodePgDatabase<typeof schema>;

@@ -1,14 +1,13 @@
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { beforeEach, describe, expect, it } from "vitest";
-import { ProjectRepository } from "./project.js";
-import { SyncLogRepository } from "./sync-log.js";
-import type * as schema from "../schema.js";
 import {
-	cleanupTestDatabase,
 	createTestProject,
 	createTestSyncLog,
-	setupTestDatabase,
-} from "../__tests__/setup.js";
+} from "../__tests__/factories.js";
+import { cleanupTestDatabase, setupTestDatabase } from "../__tests__/setup.js";
+import type * as schema from "../schema.js";
+import { ProjectRepository } from "./project.js";
+import { SyncLogRepository } from "./sync-log.js";
 
 describe("SyncLogRepository", () => {
 	let db: NodePgDatabase<typeof schema>;
