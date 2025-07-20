@@ -56,6 +56,7 @@ jobs:
           DB_USERNAME: test_user
           DB_PASSWORD: test_password
           DB_SSL: false
+          GITLAB_TOKEN: dummy_token_for_testing
         
       - name: Test (including database tests)
         run: npm test
@@ -66,3 +67,4 @@ jobs:
           DB_USERNAME: test_user
           DB_PASSWORD: test_password
           DB_SSL: false
+          GITLAB_TOKEN: dummy_token_for_testing
