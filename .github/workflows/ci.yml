@@ -10,6 +10,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: gitlab_analyzer_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,5 +47,22 @@ jobs:
       - name: Build
         run: npm run build
         
-      - name: Test
+      - name: Run database migrations
+        run: npm run db:migrate
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: gitlab_analyzer_test
+          DB_USERNAME: test_user
+          DB_PASSWORD: test_password
+          DB_SSL: false
+        
+      - name: Test (including database tests)
         run: npm test
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: gitlab_analyzer_test
+          DB_USERNAME: test_user
+          DB_PASSWORD: test_password
+          DB_SSL: false
