@@ -3,8 +3,8 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach } from "vitest";
-import * as schema from "../../src/database/schema.js";
-import { commits, projects, syncLogs } from "../../src/database/schema.js";
+import * as schema from "../schema.js";
+import { commits, projects, syncLogs } from "../schema.js";
 
 let pool: Pool;
 let testDb: NodePgDatabase<typeof schema>;

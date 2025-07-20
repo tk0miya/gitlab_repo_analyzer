@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { Repositories } from "../../src/database/repositories/index.js";
-import { cleanupTestDatabase, setupTestDatabase } from "./setup.js";
+import { Repositories } from "./repositories/index.js";
+import { cleanupTestDatabase, setupTestDatabase } from "./__tests__/setup.js";
 
 describe("Database Integration", () => {
 	beforeAll(async () => {
