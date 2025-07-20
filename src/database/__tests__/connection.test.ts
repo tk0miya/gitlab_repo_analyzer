@@ -1,6 +1,3 @@
-// GITLAB_TOKEN のみ設定（その他の環境変数はワークフローから提供）
-process.env.GITLAB_TOKEN = "dummy-token-for-tests";
-
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 describe("Database Connection", () => {
