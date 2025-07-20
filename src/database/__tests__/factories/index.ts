@@ -1,0 +1,17 @@
+/**
+ * テストデータファクトリ関数のエクスポート
+ *
+ * このファイルは、すべてのテストデータファクトリ関数への
+ * 統一的なアクセスポイントを提供します。
+ */
+
+// プロジェクト関連のファクトリ関数
+export {
+	createMultipleProjectsData,
+	createProjectData,
+} from "./projects.js";
+
+// 今後他のエンティティのファクトリを追加する場合は、ここに追加してください
+// 例:
+// export { createUserData, createGroupData } from "./users.js";
+// export { createIssueData, createMergeRequestData } from "./gitlab.js";
