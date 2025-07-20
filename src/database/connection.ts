@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool, type PoolClient } from "pg";
 import { loadConfig } from "../config/index.js";
+import * as schema from "./schema/index.js";
 
 // 設定を読み込み
 const config = await loadConfig();
@@ -19,7 +20,7 @@ const pool = new Pool({
 });
 
 // Drizzle ORMインスタンス
-export const db = drizzle(pool);
+export const db = drizzle(pool, { schema });
 
 // 生のPostgreSQLプール（直接SQLクエリが必要な場合）
 export { pool };
