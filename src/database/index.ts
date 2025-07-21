@@ -22,5 +22,5 @@ export {
 } from "./repositories/index.js";
 // スキーマ定義
 export * from "./schema/index.js";
-// トランザクションユーティリティ
-export { withTransaction } from "./utils/transaction.js";
+// トランザクションユーティリティ（テスト用）
+export { withTransaction } from "./testing/transaction.js";

@@ -3,7 +3,7 @@ import { closeConnection } from "../connection.js";
 import { CommitsRepository } from "../repositories/commits.js";
 import { ProjectsRepository } from "../repositories/projects.js";
 import type { NewCommit } from "../schema/commits.js";
-import { withTransaction } from "../utils/transaction.js";
+import { withTransaction } from "../testing/transaction.js";
 import {
 	createCommitData,
 	createMultipleCommitsData,
