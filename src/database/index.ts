@@ -6,12 +6,9 @@ export { closeConnection, db, pool, testConnection } from "./connection.js";
 // エラーハンドリング
 export {
 	ConnectionError,
-	ConstraintViolationError,
-	convertToAppropriateError,
 	DatabaseError,
-	TimeoutError,
+	handleDatabaseError,
 	UniqueConstraintError,
-	UnknownDatabaseError,
 } from "./errors/index.js";
 
 // リポジトリクラス
@@ -26,10 +23,4 @@ export {
 // スキーマ定義
 export * from "./schema/index.js";
 // トランザクションユーティリティ
-export {
-	executeInTransaction,
-	handleDatabaseError,
-	isRetryableError,
-	withRetry,
-	withTransaction,
-} from "./utils/transaction.js";
+export { executeInTransaction } from "./utils/transaction.js";
