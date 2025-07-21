@@ -3,13 +3,6 @@
 
 // 接続とコア機能
 export { closeConnection, db, pool, testConnection } from "./connection.js";
-// エラーハンドリング
-export {
-	ConnectionError,
-	DatabaseError,
-	handleDatabaseError,
-	UniqueConstraintError,
-} from "./errors/index.js";
 
 // リポジトリクラス
 export {
@@ -22,5 +15,3 @@ export {
 } from "./repositories/index.js";
 // スキーマ定義
 export * from "./schema/index.js";
-// トランザクションユーティリティ（テスト用）
-export { withTransaction } from "./testing/transaction.js";
