@@ -16,6 +16,9 @@ export {
 	createProjectData,
 } from "./projects.js";
 
+// 同期ログ関連のファクトリ関数
+export { createSyncLogData } from "./sync-logs.js";
+
 // 今後他のエンティティのファクトリを追加する場合は、ここに追加してください
 // 例:
 // export { createUserData, createGroupData } from "./users.js";

@@ -2,3 +2,4 @@
 
 export * from "./commits.js";
 export * from "./projects.js";
+export * from "./sync-logs.js";
