@@ -15,6 +15,20 @@
 			"when": 1753028209659,
 			"tag": "0001_tiny_triton",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1753087655004,
+			"tag": "0002_amused_doomsday",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1753095755501,
+			"tag": "0003_milky_bloodstorm",
+			"breakpoints": true
 		}
 	]
 }
