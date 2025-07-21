@@ -22,6 +22,22 @@ jobs:
         (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
       )
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: gitlab_analyzer_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
     permissions:
       contents: write
       pull-requests: write
@@ -63,6 +79,12 @@ jobs:
           #   Use TypeScript for new files
           
           # Optional: Custom environment variables for Claude
-          # claude_env: |
-          #   NODE_ENV: test
+          claude_env: |
+            DB_HOST: localhost
+            DB_PORT: 5432
+            DB_DATABASE: gitlab_analyzer_test
+            DB_USERNAME: test_user
+            DB_PASSWORD: test_password
+            DB_SSL: false
+            GITLAB_TOKEN: dummy_token_for_testing
 
