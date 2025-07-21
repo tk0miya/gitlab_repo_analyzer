@@ -23,4 +23,4 @@ export {
 // スキーマ定義
 export * from "./schema/index.js";
 // トランザクションユーティリティ
-export { executeInTransaction } from "./utils/transaction.js";
+export { withTransaction } from "./utils/transaction.js";
