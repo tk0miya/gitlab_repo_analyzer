@@ -1,7 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection } from "../connection.js";
-import { ProjectsRepository } from "../repositories/projects.js";
-import { SyncLogsRepository } from "../repositories/sync-logs.js";
+import { ProjectsRepository, SyncLogsRepository } from "../index.js";
 import {
 	SYNC_STATUSES,
 	SYNC_TYPES,

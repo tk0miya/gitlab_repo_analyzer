@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection } from "../connection.js";
-import { ProjectsRepository } from "../repositories/projects.js";
+import { ProjectsRepository } from "../index.js";
 import type { NewProject } from "../schema/projects.js";
 import { withTransaction } from "../testing/transaction.js";
 import { createProjectData } from "./factories/index.js";
