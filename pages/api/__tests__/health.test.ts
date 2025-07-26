@@ -1,9 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import handler from "../health";
 
 describe("/api/health", () => {
+	afterEach(() => {
+		vi.unstubAllEnvs();
+	});
+
 	it("GET リクエストでヘルスデータを返す", async () => {
 		const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
 			method: "GET",
@@ -41,8 +45,7 @@ describe("/api/health", () => {
 	});
 
 	it("環境変数が設定されていない場合、developmentを返す", async () => {
-		const originalEnv = process.env.NODE_ENV;
-		delete process.env.NODE_ENV;
+		vi.stubEnv("NODE_ENV", undefined);
 
 		const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
 			method: "GET",
@@ -52,8 +55,5 @@ describe("/api/health", () => {
 
 		const data = JSON.parse(res._getData());
 		expect(data.environment).toBe("development");
-
-		// 環境変数を復元
-		process.env.NODE_ENV = originalEnv;
 	});
 });
