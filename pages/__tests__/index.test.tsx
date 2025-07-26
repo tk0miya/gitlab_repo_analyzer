@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Home from "../index.jsx";
@@ -12,8 +12,10 @@ vi.mock("next/head", () => {
 
 describe("ホームページ", () => {
 	beforeEach(() => {
-		// Reset fetch mock before each test
+		// Clean up DOM and reset mocks before each test
+		cleanup();
 		vi.resetAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("ページタイトルが表示される", () => {
@@ -72,14 +74,14 @@ describe("ホームページ", () => {
 			expect(screen.getByText("正常")).toBeInTheDocument();
 		});
 
-		expect(screen.getByText(/最終確認:/)).toBeInTheDocument();
-		expect(screen.getByText(/稼働時間:/)).toBeInTheDocument();
-		// Check that uptime data is present by looking at the container text content
-		const container = screen.getByText(/稼働時間:/).closest("div");
-		expect(container).toHaveTextContent("3600");
-		expect(container).toHaveTextContent("秒");
-		expect(screen.getByText(/環境:/)).toBeInTheDocument();
-		expect(screen.getByText("test")).toBeInTheDocument();
+		// Use more specific selectors to avoid multiple element matches
+		const healthSection = screen.getByRole("heading", { name: /システム状態/i }).parentElement;
+		expect(healthSection).toHaveTextContent("最終確認:");
+		expect(healthSection).toHaveTextContent("稼働時間:");
+		expect(healthSection).toHaveTextContent("3600");
+		expect(healthSection).toHaveTextContent("秒");
+		expect(healthSection).toHaveTextContent("環境:");
+		expect(healthSection).toHaveTextContent("test");
 	});
 
 	it("unhealthyステータスを正しく表示する", async () => {
