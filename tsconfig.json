@@ -5,7 +5,6 @@
 		"moduleResolution": "NodeNext",
 		"lib": ["ES2022"],
 		"outDir": "./dist",
-		"rootDir": "./src",
 		"declaration": true,
 		"sourceMap": true,
 		"strict": true,
@@ -18,8 +17,16 @@
 		"noEmit": true,
 		"incremental": true,
 		"isolatedModules": true,
-		"jsx": "preserve"
+		"jsx": "preserve",
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"],
+			"@/api/*": ["src/api/*"],
+			"@/types/*": ["src/types/*"],
+			"@/database/*": ["src/database/*"],
+			"@/config/*": ["src/config/*"]
+		}
 	},
-	"include": ["src/**/*"],
+	"include": ["src/**/*", "pages/**/*", "__tests__/**/*", "tests/**/*"],
 	"exclude": ["node_modules", "dist"]
 }

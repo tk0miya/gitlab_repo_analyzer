@@ -8,6 +8,11 @@ const nextConfig = {
 		// Use existing TypeScript configuration
 		ignoreBuildErrors: false,
 	},
+	// Path aliases (Next.js will automatically use tsconfig.json paths)
+	experimental: {
+		// Ensure TypeScript path mapping compatibility
+		typedRoutes: true,
+	},
 	// Security headers
 	async headers() {
 		return [

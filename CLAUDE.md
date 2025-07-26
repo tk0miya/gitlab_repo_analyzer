@@ -119,7 +119,18 @@ npm test
 
 6. **リンティング**: コードの一貫性のためESLint設定を追加
 
-7. **開発原則**: 以下の原則に従ったコード設計・実装を行う
+7. **Path Alias**: インポートの可読性と保守性向上のためのpath alias設定
+   - **設定ファイル**: `tsconfig.json`, `vitest.config.ts`, `next.config.js`で設定済み
+   - **使用可能なエイリアス**:
+     - `@/*` → `src/*` (汎用アクセス)
+     - `@/api/*` → `src/api/*` (API関連)
+     - `@/types/*` → `src/types/*` (型定義)
+     - `@/database/*` → `src/database/*` (データベース関連) 
+     - `@/config/*` → `src/config/*` (設定ファイル)
+   - **使用例**: `import { ApiResponse } from "@/types/api.js"`
+   - **利点**: ディレクトリ移動時のインポート修正不要、可読性向上、IDEサポート強化
+
+8. **開発原則**: 以下の原則に従ったコード設計・実装を行う
    - **DRY原則 (Don't Repeat Yourself)**: 同じ情報を複数の場所で重複させない
    - **YAGNI原則 (You Ain't Gonna Need It)**: 現在必要でない機能は実装しない
    - **SOLID原則**: オブジェクト指向設計の5つの原則に従う

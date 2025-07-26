@@ -1,13 +1,16 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { closeConnection } from "../connection.js";
-import { ProjectsRepository, SyncLogsRepository } from "../index.js";
+import {
+	createProjectData,
+	createSyncLogData,
+} from "@/database/__tests__/factories/index.js";
+import { closeConnection } from "@/database/connection.js";
+import { ProjectsRepository, SyncLogsRepository } from "@/database/index.js";
 import {
 	SYNC_STATUSES,
 	SYNC_TYPES,
 	type SyncLog,
-} from "../schema/sync-logs.js";
-import { withTransaction } from "../testing/transaction.js";
-import { createProjectData, createSyncLogData } from "./factories/index.js";
+} from "@/database/schema/sync-logs.js";
+import { withTransaction } from "@/database/testing/transaction.js";
 
 describe("Sync Logs Repository", () => {
 	afterAll(async () => {

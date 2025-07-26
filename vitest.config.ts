@@ -1,9 +1,19 @@
+import path from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
 	esbuild: {
 		jsx: "automatic", // Use automatic JSX runtime
 		jsxImportSource: "react", // Specify React as JSX import source
+	},
+	resolve: {
+		alias: {
+			"@": path.resolve(__dirname, "./src"),
+			"@/api": path.resolve(__dirname, "./src/api"),
+			"@/types": path.resolve(__dirname, "./src/types"),
+			"@/database": path.resolve(__dirname, "./src/database"),
+			"@/config": path.resolve(__dirname, "./src/config"),
+		},
 	},
 	test: {
 		globals: true,
