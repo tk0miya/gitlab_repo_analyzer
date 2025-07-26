@@ -50,7 +50,7 @@ describe("セキュリティミドルウェア", () => {
 	});
 
 	it("ネストされたAPIルートでもCORSヘッダーを設定する", async () => {
-		const request = new NextRequest("http://localhost:3000/api/v1/health");
+		const request = new NextRequest("http://localhost:3000/api/health");
 		const response = await middleware(request);
 
 		expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
