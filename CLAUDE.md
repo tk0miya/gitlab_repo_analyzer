@@ -97,6 +97,16 @@ src/
 
 6. **コード品質**: Biomeでのリント・フォーマット、TypeScriptでの型安全性
 
+7. **開発原則**: 以下の原則に従ったコード設計・実装を行う
+   - **DRY原則 (Don't Repeat Yourself)**: 同じ情報を複数の場所で重複させない
+   - **YAGNI原則 (You Ain't Gonna Need It)**: 現在必要でない機能は実装しない
+   - **SOLID原則**: オブジェクト指向設計の5つの原則に従う
+     - Single Responsibility Principle (単一責任の原則)
+     - Open/Closed Principle (開放/閉鎖の原則)
+     - Liskov Substitution Principle (リスコフの置換原則)
+     - Interface Segregation Principle (インターフェース分離の原則)
+     - Dependency Inversion Principle (依存性逆転の原則)
+
 ## 開発ワークフロー
 
 ### 基本ワークフロー
