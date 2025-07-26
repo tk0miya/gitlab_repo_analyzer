@@ -6,11 +6,16 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"experimentalScannerIgnores": [
-			".next/**",
-			"dist/**",
-			"node_modules/**",
-			"coverage/**"
+		"includes": [
+			"src/**/*.{js,jsx,ts,tsx}",
+			"pages/**/*.{js,jsx,ts,tsx}",
+			"__tests__/**/*.{js,jsx,ts,tsx}",
+			"tests/**/*.{js,jsx,ts,tsx}",
+			"*.{js,jsx,ts,tsx}",
+			"middleware.ts",
+			"next.config.js",
+			"drizzle.config.ts",
+			"vitest.config.ts"
 		]
 	},
 	"formatter": {
