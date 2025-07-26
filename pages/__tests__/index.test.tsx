@@ -1,6 +1,6 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import Home from "../index";
 
 // Mock Next.js Head component
@@ -14,6 +14,11 @@ describe("ホームページ", () => {
 	beforeEach(() => {
 		// Reset fetch mock before each test
 		vi.resetAllMocks();
+	});
+
+	afterEach(() => {
+		// Clean up DOM after each test
+		cleanup();
 	});
 
 	it("ページタイトルが表示される", () => {
