@@ -1,5 +1,5 @@
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import type * as schema from "../schema/index.js";
+import type * as schema from "@/database/schema/index.js";
 
 /**
  * トランザクション内でコードを実行し、自動的にロールバックするユーティリティ関数

@@ -9,12 +9,12 @@ interface HealthResponse {
 
 export default function handler(
 	req: NextApiRequest,
-	res: NextApiResponse<HealthResponse>,
+	res: NextApiResponse<HealthResponse | string>,
 ) {
 	// Only allow GET requests
 	if (req.method !== "GET") {
 		res.setHeader("Allow", ["GET"]);
-		res.status(405).end(`Method ${req.method} Not Allowed`);
+		res.status(405).send(`Method ${req.method} Not Allowed`);
 		return;
 	}
 

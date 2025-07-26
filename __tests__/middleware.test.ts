@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { middleware } from "../middleware";
+import { describe, expect, it } from "vitest";
+import { middleware } from "../middleware.js";
 
 describe("セキュリティミドルウェア", () => {
 	it("基本的なセキュリティヘッダーを設定する", async () => {
