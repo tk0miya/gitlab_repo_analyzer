@@ -1,24 +1,52 @@
 {
 	"compilerOptions": {
 		"target": "ES2022",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"lib": ["ES2022"],
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"allowJs": true,
+		"checkJs": false,
+		"jsx": "preserve",
+		"incremental": true,
+		"noEmit": true,
 
 		"outDir": "./dist",
-		"rootDir": "./src",
 		"declaration": true,
 		"sourceMap": true,
 
 		"strict": true,
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
 
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"skipLibCheck": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./*"],
+			"@/components/*": ["./components/*"],
+			"@/pages/*": ["./pages/*"],
+			"@/lib/*": ["./lib/*"],
+			"@/styles/*": ["./styles/*"],
+			"@/src/*": ["./src/*"]
+		},
+
+		"plugins": [
+			{
+				"name": "next"
+			}
+		]
 	},
-	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist"]
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		".next/types/**/*.ts",
+		"src/**/*"
+	],
+	"exclude": ["node_modules", "dist", ".next"]
 }
