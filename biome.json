@@ -5,6 +5,14 @@
 		"clientKind": "git",
 		"useIgnoreFile": true
 	},
+	"files": {
+		"experimentalScannerIgnores": [
+			".next/**",
+			"dist/**",
+			"node_modules/**",
+			"coverage/**"
+		]
+	},
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab"
