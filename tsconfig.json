@@ -4,6 +4,7 @@
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["vitest/globals"],
 		"outDir": "./dist",
 		"declaration": true,
 		"sourceMap": true,
@@ -24,7 +25,9 @@
 			"@/api/*": ["src/api/*"],
 			"@/types/*": ["src/types/*"],
 			"@/database/*": ["src/database/*"],
-			"@/config/*": ["src/config/*"]
+			"@/config/*": ["src/config/*"],
+			"next/server": ["./types/next-modules.d.ts"],
+			"next/head": ["./types/next-modules.d.ts"]
 		}
 	},
 	"include": [
