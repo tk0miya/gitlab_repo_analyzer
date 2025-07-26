@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import handler from "../health";

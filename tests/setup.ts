@@ -1,4 +1,5 @@
-import "@testing-library/jest-dom";
+import { vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
 
 // Mock Next.js specific functions
 Object.defineProperty(window, "matchMedia", {
