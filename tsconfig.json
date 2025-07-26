@@ -1,8 +1,8 @@
 {
 	"compilerOptions": {
 		"target": "ES2022",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
+		"module": "esnext",
+		"moduleResolution": "bundler",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"types": ["vitest/globals"],
 		"outDir": "./dist",
@@ -25,10 +25,9 @@
 			"@/api/*": ["src/api/*"],
 			"@/types/*": ["src/types/*"],
 			"@/database/*": ["src/database/*"],
-			"@/config/*": ["src/config/*"],
-			"next/server": ["./types/next-modules.d.ts"],
-			"next/head": ["./types/next-modules.d.ts"]
-		}
+			"@/config/*": ["src/config/*"]
+		},
+		"allowJs": true
 	},
 	"include": [
 		"next-env.d.ts",
@@ -37,7 +36,8 @@
 		"__tests__/**/*",
 		"tests/**/*",
 		"types/**/*",
-		"vitest.config.ts"
+		"vitest.config.ts",
+		"node_modules/next/types/**/*"
 	],
 	"exclude": ["node_modules", "dist"]
 }
