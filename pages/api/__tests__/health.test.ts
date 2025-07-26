@@ -1,5 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
+import { describe, expect, it, vi } from "vitest";
 import handler from "../health.js";
 
 describe("/api/health", () => {
@@ -40,7 +40,7 @@ describe("/api/health", () => {
 	});
 
 	it("環境変数が設定されていない場合、developmentを返す", async () => {
-		vi.stubEnv('NODE_ENV', undefined);
+		vi.stubEnv("NODE_ENV", undefined);
 
 		const { req, res } = createMocks({
 			method: "GET",

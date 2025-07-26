@@ -24,11 +24,17 @@
 			"@/api/*": ["src/api/*"],
 			"@/types/*": ["src/types/*"],
 			"@/database/*": ["src/database/*"],
-			"@/config/*": ["src/config/*"],
-			"next/server": ["./types/next-modules.d.ts"],
-			"next/head": ["./types/next-modules.d.ts"]
+			"@/config/*": ["src/config/*"]
 		}
 	},
-	"include": ["src/**/*", "pages/**/*", "__tests__/**/*", "tests/**/*", "types/**/*", "vitest.config.ts"],
+	"include": [
+		"next-env.d.ts",
+		"src/**/*",
+		"pages/**/*",
+		"__tests__/**/*",
+		"tests/**/*",
+		"types/**/*",
+		"vitest.config.ts"
+	],
 	"exclude": ["node_modules", "dist"]
 }

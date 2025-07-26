@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import Home from "../index.jsx";
 
 // Mock Next.js Head component
