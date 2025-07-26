@@ -6,7 +6,6 @@ export default defineConfig({
 		jsxImportSource: "react", // Specify React as JSX import source
 	},
 	test: {
-		globals: true,
 		environment: "jsdom", // Enable browser environment for React components
 		setupFiles: ["./tests/setup.ts"], // Setup file for React Testing Library
 		mockReset: true,
