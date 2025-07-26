@@ -27,10 +27,7 @@
 	"include": [
 		"next-env.d.ts",
 		"src/**/*",
-		"pages/**/*",
-		"middleware.ts",
-		"__tests__/**/*",
-		"tests/**/*"
+		"config/**/*"
 	],
 	"exclude": ["node_modules", "dist", ".next"]
 }
