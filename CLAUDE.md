@@ -205,8 +205,7 @@ Claude Codeは以下の手順に従って作業を実行する：
 
 #### PR作成コマンド標準形式
 ```bash
-gh pr create --title "イシュー #<number>: <作業内容>" --body "$(cat <<'EOF'
-## 概要
+gh pr create --title "イシュー #<number>: <作業内容>" --body "## 概要
 <作業内容の詳細説明>
 
 ## 変更内容
@@ -220,9 +219,7 @@ gh pr create --title "イシュー #<number>: <作業内容>" --body "$(cat <<'E
 
 Closes #<issue-number>
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
-EOF
-)"
+🤖 Generated with [Claude Code](https://claude.ai/code)"
 ```
 
 #### 作業完了の定義
