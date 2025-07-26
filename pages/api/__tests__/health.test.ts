@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import handler from "../health";
+import handler from "../health.js";
 
 describe("/api/health", () => {
 	it("GET リクエストでヘルスデータを返す", async () => {
-		const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+		const { req, res } = createMocks({
 			method: "GET",
 		});
 
@@ -28,7 +28,7 @@ describe("/api/health", () => {
 	});
 
 	it("サポートされていないHTTPメソッドで405エラーを返す", async () => {
-		const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+		const { req, res } = createMocks({
 			method: "POST",
 		});
 
@@ -40,10 +40,9 @@ describe("/api/health", () => {
 	});
 
 	it("環境変数が設定されていない場合、developmentを返す", async () => {
-		const originalEnv = process.env.NODE_ENV;
-		delete process.env.NODE_ENV;
+		vi.stubEnv('NODE_ENV', undefined);
 
-		const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+		const { req, res } = createMocks({
 			method: "GET",
 		});
 
@@ -52,7 +51,6 @@ describe("/api/health", () => {
 		const data = JSON.parse(res._getData());
 		expect(data.environment).toBe("development");
 
-		// 環境変数を復元
-		process.env.NODE_ENV = originalEnv;
+		vi.unstubAllEnvs();
 	});
 });

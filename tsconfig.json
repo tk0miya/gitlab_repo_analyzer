@@ -3,7 +3,7 @@
 		"target": "ES2022",
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
-		"lib": ["ES2022"],
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"outDir": "./dist",
 		"declaration": true,
 		"sourceMap": true,
@@ -24,9 +24,11 @@
 			"@/api/*": ["src/api/*"],
 			"@/types/*": ["src/types/*"],
 			"@/database/*": ["src/database/*"],
-			"@/config/*": ["src/config/*"]
+			"@/config/*": ["src/config/*"],
+			"next/server": ["./types/next-modules.d.ts"],
+			"next/head": ["./types/next-modules.d.ts"]
 		}
 	},
-	"include": ["src/**/*", "pages/**/*", "__tests__/**/*", "tests/**/*"],
+	"include": ["src/**/*", "pages/**/*", "__tests__/**/*", "tests/**/*", "types/**/*", "vitest.config.ts"],
 	"exclude": ["node_modules", "dist"]
 }

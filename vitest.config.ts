@@ -21,5 +21,8 @@ export default defineConfig({
 		setupFiles: ["./tests/setup.ts"], // Setup file for React Testing Library
 		mockReset: true,
 		restoreMocks: true,
+		typecheck: {
+			tsconfig: "./tsconfig.json",
+		},
 	},
 });

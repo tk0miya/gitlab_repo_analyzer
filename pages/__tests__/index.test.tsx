@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import Home from "../index";
+import Home from "../index.jsx";
 
 // Mock Next.js Head component
 vi.mock("next/head", () => {
