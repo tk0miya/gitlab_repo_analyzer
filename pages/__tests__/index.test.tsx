@@ -75,7 +75,9 @@ describe("ホームページ", () => {
 		});
 
 		// Use more specific selectors to avoid multiple element matches
-		const healthSection = screen.getByRole("heading", { name: /システム状態/i }).parentElement;
+		const healthSection = screen.getByRole("heading", {
+			name: /システム状態/i,
+		}).parentElement;
 		expect(healthSection).toHaveTextContent("最終確認:");
 		expect(healthSection).toHaveTextContent("稼働時間:");
 		expect(healthSection).toHaveTextContent("3600");
