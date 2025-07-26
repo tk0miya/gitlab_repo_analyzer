@@ -16,7 +16,7 @@ export default defineConfig({
 		},
 	},
 	test: {
-		globals: true,
+		globals: false,
 		environment: "jsdom", // Enable browser environment for React components
 		setupFiles: ["./tests/setup.ts"], // Setup file for React Testing Library
 		mockReset: true,
@@ -24,5 +24,7 @@ export default defineConfig({
 		typecheck: {
 			tsconfig: "./tsconfig.json",
 		},
+		// Provide expect globally for jest-dom while keeping other functions explicit
+		pool: "forks",
 	},
 });

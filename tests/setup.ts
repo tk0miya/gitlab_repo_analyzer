@@ -1,5 +1,7 @@
-import "@testing-library/jest-dom";
 import { vi } from "vitest";
+
+// Note: @testing-library/jest-dom removed for explicit import setup
+// Each test file should import expect matchers as needed
 
 // Mock Next.js specific functions
 Object.defineProperty(window, "matchMedia", {
