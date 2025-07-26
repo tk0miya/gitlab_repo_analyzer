@@ -7,6 +7,10 @@ npm-debug.log*
 # TypeScript build output
 dist/
 
+# Next.js build output
+.next/
+*.tsbuildinfo
+
 # OS generated files
 .DS_Store
 Thumbs.db
