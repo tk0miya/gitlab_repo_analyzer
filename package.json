@@ -9,6 +9,7 @@
 		"start": "node dist/index.js",
 		"typecheck": "tsc --noEmit",
 		"dev": "node --loader tsx/esm src/index.ts",
+		"web": "node --loader tsx/esm src/web/server.ts",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"lint": "biome check .",
@@ -32,11 +33,13 @@
 		"vitest": "^2.0.0"
 	},
 	"dependencies": {
+		"@types/express": "^5.0.3",
 		"@types/pg": "^8.15.4",
 		"axios": "^1.10.0",
 		"dotenv": "^16.4.5",
 		"drizzle-kit": "^0.31.4",
 		"drizzle-orm": "^0.44.3",
+		"express": "^5.1.0",
 		"pg": "^8.16.3",
 		"zod": "^3.22.4"
 	}
