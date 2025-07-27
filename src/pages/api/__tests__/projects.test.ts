@@ -167,7 +167,10 @@ describe("/api/projects", () => {
 			mockGitLabClient = {
 				getProject: vi.fn(),
 			};
-			vi.mocked(GitLabApiClient).mockImplementation(() => mockGitLabClient as any);
+			vi.mocked(GitLabApiClient).mockImplementation(
+				// biome-ignore lint/suspicious/noExplicitAny: テスト用のモックでは型安全性よりもシンプルさを優先
+				() => mockGitLabClient as any,
+			);
 
 			// loadConfigのモックも確実に設定
 			vi.mocked(loadConfig).mockResolvedValue({
