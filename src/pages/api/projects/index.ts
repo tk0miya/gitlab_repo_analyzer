@@ -127,8 +127,8 @@ async function postHandler(
 			gitlab_created_at: new Date(gitlabProject.created_at),
 		};
 
-		// データベースに保存（upsert使用）
-		const savedProject = await projectsRepository.upsert(newProjectData);
+		// データベースに保存（新規作成）
+		const savedProject = await projectsRepository.create(newProjectData);
 
 		// API用レスポンス形式に変換
 		const responseProject = {

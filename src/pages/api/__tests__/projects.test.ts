@@ -12,7 +12,7 @@ vi.mock("@/database/index", () => ({
 		findAll: vi.fn(),
 		findByGitlabId: vi.fn(),
 		findByUrl: vi.fn(),
-		upsert: vi.fn(),
+		create: vi.fn(),
 	},
 }));
 
@@ -221,7 +221,7 @@ describe("/api/projects", () => {
 			// モックの設定
 			vi.mocked(projectsRepository.findByUrl).mockResolvedValue(null);
 			mockGitLabClient.getProject.mockResolvedValue(mockGitLabProject);
-			vi.mocked(projectsRepository.upsert).mockResolvedValue(mockSavedProject);
+			vi.mocked(projectsRepository.create).mockResolvedValue(mockSavedProject);
 
 			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
 				method: "POST",
@@ -256,7 +256,7 @@ describe("/api/projects", () => {
 			expect(mockGitLabClient.getProject).toHaveBeenCalledWith(
 				"group/test-project",
 			);
-			expect(projectsRepository.upsert).toHaveBeenCalledWith({
+			expect(projectsRepository.create).toHaveBeenCalledWith({
 				gitlab_id: 123,
 				name: "test-project",
 				description: "Test project description",
