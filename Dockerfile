@@ -1,5 +1,8 @@
 FROM node:22-slim
 
+# diff-highlightをインストール（準備）
+RUN echo "path-include /usr/share/doc/git/*" > /etc/dpkg/dpkg.cfg.d/git
+
 # Debian標準パッケージをインストール
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -7,7 +10,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && apt-get install -y --no-install-recommends \
         curl \
         git \
-        jq
+        jq \
+        less \
+        make
+
+# diff-highlightをインストール
+RUN cd /usr/share/doc/git/contrib/diff-highlight && make && install -m 755 diff-highlight /usr/bin
 
 # GitHub CLIをインストール
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
