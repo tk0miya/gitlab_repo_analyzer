@@ -1,11 +1,25 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { ZodError } from "zod";
+import { GitLabApiClient } from "@/api/gitlab-client";
+import type { GitLabProject } from "@/api/types/project";
 import {
 	createErrorResponse,
 	createSuccessResponse,
 	ERROR_MESSAGES,
+	formatZodErrors,
 } from "@/api/utils/response";
+import {
+	type ProjectCreateApiRequest,
+	ProjectCreateApiSchema,
+} from "@/api/validation/project";
+import { loadConfig } from "@/config";
 import { projectsRepository } from "@/database/index";
-import type { ApiErrorResponse, ProjectListResponse } from "@/types/api";
+import type { NewProject } from "@/database/schema/projects";
+import type {
+	ApiErrorResponse,
+	ProjectCreateResponse,
+	ProjectListResponse,
+} from "@/types/api";
 
 /**
  * プロジェクト一覧取得ハンドラー
@@ -32,17 +46,140 @@ async function getHandler(
 	res.status(200).json(createSuccessResponse(projects));
 }
 
+/**
+ * プロジェクト新規作成ハンドラー
+ */
+async function postHandler(
+	req: NextApiRequest,
+	res: NextApiResponse<ProjectCreateResponse | ApiErrorResponse>,
+) {
+	try {
+		// リクエストボディのバリデーション
+		const validatedData: ProjectCreateApiRequest = ProjectCreateApiSchema.parse(
+			req.body,
+		);
+
+		// 設定読み込み
+		const config = await loadConfig();
+
+		// GitLab API クライアント作成
+		const gitlabClient = new GitLabApiClient({
+			baseUrl: config.gitlab.url,
+			token: config.gitlab.token,
+			timeout: config.gitlab.timeout,
+		});
+
+		// GitLab プロジェクト ID で重複チェック
+		const existingProject = await projectsRepository.findByGitlabId(
+			validatedData.gitlab_project_id,
+		);
+		if (existingProject) {
+			res
+				.status(409)
+				.json(
+					createErrorResponse(
+						"指定されたGitLab プロジェクトIDは既に登録済みです",
+						`GitLab ID: ${validatedData.gitlab_project_id}`,
+					),
+				);
+			return;
+		}
+
+		// GitLab APIからプロジェクト情報を取得
+		let gitlabProject: GitLabProject;
+		try {
+			gitlabProject = await gitlabClient.getProject(
+				validatedData.gitlab_project_id.toString(),
+			);
+		} catch (error) {
+			res
+				.status(503)
+				.json(
+					createErrorResponse(
+						"GitLab APIからプロジェクト情報を取得できませんでした",
+						error instanceof Error ? error.message : "不明なエラー",
+					),
+				);
+			return;
+		}
+
+		// 取得したプロジェクト情報とリクエストURLの整合性チェック
+		if (gitlabProject.web_url !== validatedData.url) {
+			res
+				.status(400)
+				.json(
+					createErrorResponse(
+						"指定されたURLとGitLab プロジェクトIDが一致しません",
+						`GitLab API URL: ${gitlabProject.web_url}, リクエスト URL: ${validatedData.url}`,
+					),
+				);
+			return;
+		}
+
+		// データベース用のプロジェクトデータを作成
+		const newProjectData: NewProject = {
+			gitlab_id: gitlabProject.id,
+			name: gitlabProject.name,
+			description: gitlabProject.description,
+			web_url: gitlabProject.web_url,
+			default_branch: gitlabProject.default_branch,
+			visibility: gitlabProject.visibility,
+			gitlab_created_at: new Date(gitlabProject.created_at),
+		};
+
+		// データベースに保存（upsert使用）
+		const savedProject = await projectsRepository.upsert(newProjectData);
+
+		// API用レスポンス形式に変換
+		const responseProject = {
+			id: savedProject.id,
+			gitlab_id: savedProject.gitlab_id,
+			name: savedProject.name,
+			description: savedProject.description,
+			web_url: savedProject.web_url,
+			default_branch: savedProject.default_branch,
+			visibility: savedProject.visibility as "public" | "internal" | "private",
+			created_at: savedProject.created_at,
+			gitlab_created_at: savedProject.gitlab_created_at,
+		};
+
+		res.status(201).json(createSuccessResponse(responseProject));
+	} catch (error) {
+		// Zodバリデーションエラー
+		if (error instanceof ZodError) {
+			res
+				.status(400)
+				.json(
+					createErrorResponse(
+						ERROR_MESSAGES.VALIDATION_FAILED,
+						undefined,
+						formatZodErrors(error),
+					),
+				);
+			return;
+		}
+
+		// その他のエラー
+		throw error;
+	}
+}
+
 export default async function handler(
 	req: NextApiRequest,
-	res: NextApiResponse<ProjectListResponse | ApiErrorResponse>,
+	res: NextApiResponse<
+		ProjectListResponse | ProjectCreateResponse | ApiErrorResponse
+	>,
 ) {
 	try {
 		switch (req.method) {
 			case "GET":
 				await getHandler(req, res);
 				break;
+			case "POST":
+				await postHandler(req, res);
+				break;
 			default:
-				res.setHeader("Allow", ["GET"]);
+				res.setHeader("Allow", ["GET", "POST"]);
 				res.status(405).json(createErrorResponse("Method not allowed"));
 				return;
 		}

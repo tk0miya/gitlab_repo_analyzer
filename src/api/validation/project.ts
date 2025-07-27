@@ -113,3 +113,39 @@ export type ProjectCreateRequest = z.infer<typeof ProjectCreateSchema>;
  * プロジェクト更新用リクエストの型定義
  */
 export type ProjectUpdateRequest = z.infer<typeof ProjectUpdateSchema>;
+
+/**
+ * プロジェクト新規作成API用バリデーションスキーマ
+ * POST /api/projects 用の簡略化されたリクエスト形式
+ */
+export const ProjectCreateApiSchema = z.object({
+	// GitLab URL（必須、有効なURL、500文字以内）
+	url: z
+		.string()
+		.url("有効なURLである必要があります")
+		.max(500, "URLは500文字以内である必要があります")
+		.refine(
+			(url) => {
+				try {
+					const parsed = new URL(url);
+					return parsed.hostname.length > 0;
+				} catch {
+					return false;
+				}
+			},
+			{
+				message: "有効なGitLab URLである必要があります",
+			},
+		),
+
+	// GitLab プロジェクトID（必須、正の整数）
+	gitlab_project_id: z
+		.number()
+		.int()
+		.positive("GitLab プロジェクトIDは正の整数である必要があります"),
+});
+
+/**
+ * プロジェクト新規作成API用リクエストの型定義
+ */
+export type ProjectCreateApiRequest = z.infer<typeof ProjectCreateApiSchema>;

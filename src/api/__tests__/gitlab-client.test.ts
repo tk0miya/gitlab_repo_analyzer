@@ -161,6 +161,11 @@ describe("GitLabApiClient", () => {
 				id: 123,
 				description: "Test project",
 				name: "test-project",
+				web_url: "https://gitlab.example.com/group/test-project",
+				default_branch: "main",
+				visibility: "public",
+				created_at: "2023-01-01T00:00:00.000Z",
+				path_with_namespace: "group/test-project",
 			};
 
 			mockAxiosInstance.get.mockResolvedValue({ data: mockProject });
