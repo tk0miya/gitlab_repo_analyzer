@@ -69,22 +69,6 @@ async function postHandler(
 			timeout: config.gitlab.timeout,
 		});
 
-		// URL で重複チェック
-		const existingProject = await projectsRepository.findByUrl(
-			projectRequest.url,
-		);
-		if (existingProject) {
-			res
-				.status(409)
-				.json(
-					createErrorResponse(
-						"指定されたGitLab プロジェクトURLは既に登録済みです",
-						`URL: ${projectRequest.url}`,
-					),
-				);
-			return;
-		}
-
 		// URL からプロジェクトスラッグを抽出
 		let projectSlug: string;
 		try {
@@ -112,6 +96,22 @@ async function postHandler(
 					createErrorResponse(
 						"GitLab APIからプロジェクト情報を取得できませんでした",
 						error instanceof Error ? error.message : "不明なエラー",
+					),
+				);
+			return;
+		}
+
+		// gitlab_id で重複チェック
+		const existingProject = await projectsRepository.findByGitlabId(
+			gitlabProject.id,
+		);
+		if (existingProject) {
+			res
+				.status(409)
+				.json(
+					createErrorResponse(
+						"指定されたGitLab プロジェクトは既に登録済みです",
+						`GitLab ID: ${gitlabProject.id}, 名前: ${gitlabProject.name}`,
 					),
 				);
 			return;
