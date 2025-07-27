@@ -1,0 +1,53 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # ソースコードをバインドマウント（開発時の即座反映用）
+      - .:/app
+      # node_modules専用volume（高速アクセス用）
+      - node_modules_volume:/app/node_modules
+      # Claude Code認証情報
+      - ~/.claude:/root/.claude
+      - ~/.claude.json:/root/.claude.json
+      # Git設定（読み取り専用）
+      - ~/.gitconfig:/root/.gitconfig:ro
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=gitlab_analyzer
+      - DB_USERNAME=analyzer_user
+      - DB_PASSWORD=dev_password
+      - DB_SSL=false
+      - GITLAB_TOKEN=glpat-xxxxxxxxxxxxxxxxxxxx
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-ghp_xxxxxxxxxxxxxxxxxxxx}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # 開発用の設定
+    stdin_open: true
+    tty: true
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=gitlab_analyzer
+      - POSTGRES_USER=analyzer_user
+      - POSTGRES_PASSWORD=dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      # データ永続化用
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analyzer_user -d gitlab_analyzer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  # PostgreSQLデータ永続化
+  postgres_data:
+  # node_modules高速化
+  node_modules_volume:
