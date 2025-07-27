@@ -9,6 +9,7 @@ import {
 	formatZodErrors,
 } from "@/api/utils/response";
 import {
+	extractProjectSlugFromUrl,
 	type ProjectCreateApiRequest,
 	ProjectCreateApiSchema,
 } from "@/api/validation/project";
@@ -68,17 +69,33 @@ async function postHandler(
 			timeout: config.gitlab.timeout,
 		});
 
-		// GitLab プロジェクト ID で重複チェック
-		const existingProject = await projectsRepository.findByGitlabId(
-			projectRequest.gitlab_project_id,
+		// URL で重複チェック
+		const existingProject = await projectsRepository.findByUrl(
+			projectRequest.url,
 		);
 		if (existingProject) {
 			res
 				.status(409)
 				.json(
 					createErrorResponse(
-						"指定されたGitLab プロジェクトIDは既に登録済みです",
-						`GitLab ID: ${projectRequest.gitlab_project_id}`,
+						"指定されたGitLab プロジェクトURLは既に登録済みです",
+						`URL: ${projectRequest.url}`,
+					),
+				);
+			return;
+		}
+
+		// URL からプロジェクトスラッグを抽出
+		let projectSlug: string;
+		try {
+			projectSlug = extractProjectSlugFromUrl(projectRequest.url);
+		} catch (error) {
+			res
+				.status(400)
+				.json(
+					createErrorResponse(
+						"GitLab プロジェクトのURLが無効です",
+						error instanceof Error ? error.message : "不明なエラー",
 					),
 				);
 			return;
@@ -87,9 +104,7 @@ async function postHandler(
 		// GitLab APIからプロジェクト情報を取得
 		let gitlabProject: GitLabProject;
 		try {
-			gitlabProject = await gitlabClient.getProject(
-				projectRequest.gitlab_project_id.toString(),
-			);
+			gitlabProject = await gitlabClient.getProject(projectSlug);
 		} catch (error) {
 			res
 				.status(503)
@@ -101,20 +116,6 @@ async function postHandler(
 				);
 			return;
 		}
-
-		// 取得したプロジェクト情報とリクエストURLの整合性チェック
-		if (gitlabProject.web_url !== projectRequest.url) {
-			res
-				.status(400)
-				.json(
-					createErrorResponse(
-						"指定されたURLとGitLab プロジェクトIDが一致しません",
-						`GitLab API URL: ${gitlabProject.web_url}, リクエスト URL: ${projectRequest.url}`,
-					),
-				);
-			return;
-		}
-
 		// データベース用のプロジェクトデータを作成
 		const newProjectData: NewProject = {
 			gitlab_id: gitlabProject.id,

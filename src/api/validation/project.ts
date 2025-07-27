@@ -136,16 +136,59 @@ export const ProjectCreateApiSchema = z.object({
 			{
 				message: "有効なGitLab URLである必要があります",
 			},
+		)
+		.refine(
+			(url) => {
+				try {
+					// GitLab URL からプロジェクトスラッグを抽出できることを確認
+					const parsed = new URL(url);
+					const pathParts = parsed.pathname
+						.split("/")
+						.filter((part) => part.length > 0);
+					return pathParts.length >= 2; // 最低限 group/project の形式
+				} catch {
+					return false;
+				}
+			},
+			{
+				message:
+					"GitLab プロジェクトの有効なURLである必要があります（例: https://gitlab.com/group/project）",
+			},
 		),
-
-	// GitLab プロジェクトID（必須、正の整数）
-	gitlab_project_id: z
-		.number()
-		.int()
-		.positive("GitLab プロジェクトIDは正の整数である必要があります"),
 });
 
 /**
  * プロジェクト新規作成API用リクエストの型定義
  */
 export type ProjectCreateApiRequest = z.infer<typeof ProjectCreateApiSchema>;
+
+/**
+ * GitLab URL からプロジェクトスラッグ（path_with_namespace）を抽出
+ * @param url GitLab プロジェクトのURL
+ * @returns プロジェクトスラッグ（例: "group/project"）
+ * @throws Error 無効なURLの場合
+ */
+export function extractProjectSlugFromUrl(url: string): string {
+	try {
+		const parsed = new URL(url);
+		const pathParts = parsed.pathname
+			.split("/")
+			.filter((part) => part.length > 0);
+
+		if (pathParts.length < 2) {
+			throw new Error("URLからプロジェクトスラッグを抽出できません");
+		}
+
+		// group/project 形式のスラッグを抽出
+		// 最初の2つのパス部分を結合（subgroup対応のため残りも含める可能性がある）
+		return pathParts.join("/");
+	} catch (error) {
+		if (
+			error instanceof Error &&
+			error.message.includes("プロジェクトスラッグ")
+		) {
+			throw error;
+		}
+		throw new Error(`無効なURL形式です: ${url}`);
+	}
+}

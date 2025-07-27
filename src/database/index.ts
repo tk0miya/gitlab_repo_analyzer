@@ -306,6 +306,19 @@ export class ProjectsRepository {
 	}
 
 	/**
+	 * GitLab URLでプロジェクトを取得
+	 * @param webUrl GitLab プロジェクトのWebURL
+	 * @returns プロジェクト情報（見つからない場合はnull）
+	 */
+	async findByUrl(webUrl: string): Promise<Project | null> {
+		const [project] = await this.db
+			.select()
+			.from(projects)
+			.where(eq(projects.web_url, webUrl));
+		return project || null;
+	}
+
+	/**
 	 * すべてのプロジェクトを取得（ページネーション対応）
 	 * @param limit 取得件数制限（デフォルト: 100）
 	 * @param offset オフセット（デフォルト: 0）

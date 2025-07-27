@@ -11,6 +11,7 @@ vi.mock("@/database/index", () => ({
 	projectsRepository: {
 		findAll: vi.fn(),
 		findByGitlabId: vi.fn(),
+		findByUrl: vi.fn(),
 		upsert: vi.fn(),
 	},
 }));
@@ -192,7 +193,6 @@ describe("/api/projects", () => {
 		it("新しいプロジェクトを正常に作成できる", async () => {
 			const requestBody = {
 				url: "https://gitlab.com/group/test-project",
-				gitlab_project_id: 123,
 			};
 
 			const mockGitLabProject: GitLabProject = {
@@ -219,7 +219,7 @@ describe("/api/projects", () => {
 			};
 
 			// モックの設定
-			vi.mocked(projectsRepository.findByGitlabId).mockResolvedValue(null);
+			vi.mocked(projectsRepository.findByUrl).mockResolvedValue(null);
 			mockGitLabClient.getProject.mockResolvedValue(mockGitLabProject);
 			vi.mocked(projectsRepository.upsert).mockResolvedValue(mockSavedProject);
 
@@ -250,8 +250,12 @@ describe("/api/projects", () => {
 			});
 
 			// 各メソッドが正しく呼び出されたことを確認
-			expect(projectsRepository.findByGitlabId).toHaveBeenCalledWith(123);
-			expect(mockGitLabClient.getProject).toHaveBeenCalledWith("123");
+			expect(projectsRepository.findByUrl).toHaveBeenCalledWith(
+				"https://gitlab.com/group/test-project",
+			);
+			expect(mockGitLabClient.getProject).toHaveBeenCalledWith(
+				"group/test-project",
+			);
 			expect(projectsRepository.upsert).toHaveBeenCalledWith({
 				gitlab_id: 123,
 				name: "test-project",
@@ -263,10 +267,9 @@ describe("/api/projects", () => {
 			});
 		});
 
-		it("重複するGitLab プロジェクトIDで409エラーを返す", async () => {
+		it("重複するGitLab プロジェクトURLで409エラーを返す", async () => {
 			const requestBody = {
 				url: "https://gitlab.com/group/test-project",
-				gitlab_project_id: 123,
 			};
 
 			const existingProject: Project = {
@@ -281,7 +284,7 @@ describe("/api/projects", () => {
 				gitlab_created_at: new Date(),
 			};
 
-			vi.mocked(projectsRepository.findByGitlabId).mockResolvedValue(
+			vi.mocked(projectsRepository.findByUrl).mockResolvedValue(
 				existingProject,
 			);
 
@@ -299,22 +302,23 @@ describe("/api/projects", () => {
 				success: false,
 				timestamp: expect.any(String),
 				error: {
-					message: "指定されたGitLab プロジェクトIDは既に登録済みです",
-					details: "GitLab ID: 123",
+					message: "指定されたGitLab プロジェクトURLは既に登録済みです",
+					details: "URL: https://gitlab.com/group/test-project",
 				},
 			});
 
-			expect(projectsRepository.findByGitlabId).toHaveBeenCalledWith(123);
+			expect(projectsRepository.findByUrl).toHaveBeenCalledWith(
+				"https://gitlab.com/group/test-project",
+			);
 			expect(mockGitLabClient.getProject).not.toHaveBeenCalled();
 		});
 
 		it("GitLab APIエラー時に503エラーを返す", async () => {
 			const requestBody = {
 				url: "https://gitlab.com/group/test-project",
-				gitlab_project_id: 123,
 			};
 
-			vi.mocked(projectsRepository.findByGitlabId).mockResolvedValue(null);
+			vi.mocked(projectsRepository.findByUrl).mockResolvedValue(null);
 			mockGitLabClient.getProject.mockRejectedValue(
 				new Error("GitLab API エラー (404): Project not found"),
 			);
@@ -339,25 +343,10 @@ describe("/api/projects", () => {
 			});
 		});
 
-		it("URLとGitLab プロジェクトIDが一致しない場合400エラーを返す", async () => {
+		it("無効なGitLab URL形式で400エラーを返す", async () => {
 			const requestBody = {
-				url: "https://gitlab.com/group/wrong-project",
-				gitlab_project_id: 123,
+				url: "https://gitlab.com/invalid", // プロジェクトスラッグが不足したURL
 			};
-
-			const mockGitLabProject: GitLabProject = {
-				id: 123,
-				name: "test-project",
-				description: "Test project description",
-				web_url: "https://gitlab.com/group/test-project", // 異なるURL
-				default_branch: "main",
-				visibility: "public",
-				created_at: "2023-01-01T00:00:00.000Z",
-				path_with_namespace: "group/test-project",
-			};
-
-			vi.mocked(projectsRepository.findByGitlabId).mockResolvedValue(null);
-			mockGitLabClient.getProject.mockResolvedValue(mockGitLabProject);
 
 			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
 				method: "POST",
@@ -373,9 +362,15 @@ describe("/api/projects", () => {
 				success: false,
 				timestamp: expect.any(String),
 				error: {
-					message: "指定されたURLとGitLab プロジェクトIDが一致しません",
-					details:
-						"GitLab API URL: https://gitlab.com/group/test-project, リクエスト URL: https://gitlab.com/group/wrong-project",
+					message: "入力内容に不正があります",
+					validation_errors: expect.arrayContaining([
+						expect.objectContaining({
+							field: "url",
+							message: expect.stringContaining(
+								"GitLab プロジェクトの有効なURL",
+							),
+						}),
+					]),
 				},
 			});
 		});
@@ -383,7 +378,6 @@ describe("/api/projects", () => {
 		it("無効なリクエストボディで400エラーを返す", async () => {
 			const invalidRequestBody = {
 				url: "invalid-url", // 無効なURL
-				gitlab_project_id: -1, // 無効なプロジェクトID
 			};
 
 			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
@@ -406,10 +400,6 @@ describe("/api/projects", () => {
 							field: "url",
 							message: expect.any(String),
 						}),
-						expect.objectContaining({
-							field: "gitlab_project_id",
-							message: expect.any(String),
-						}),
 					]),
 				},
 			});
@@ -417,8 +407,7 @@ describe("/api/projects", () => {
 
 		it("必須フィールドが不足している場合400エラーを返す", async () => {
 			const incompleteRequestBody = {
-				url: "https://gitlab.com/group/test-project",
-				// gitlab_project_id が不足
+				// url が不足
 			};
 
 			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
@@ -438,7 +427,7 @@ describe("/api/projects", () => {
 					message: "入力内容に不正があります",
 					validation_errors: expect.arrayContaining([
 						expect.objectContaining({
-							field: "gitlab_project_id",
+							field: "url",
 							message: expect.any(String),
 						}),
 					]),
