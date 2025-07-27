@@ -1,4 +1,4 @@
-import type { NewProject } from "../../schema/projects.js";
+import type { NewProject } from "@/database/schema/projects.js";
 
 /**
  * プロジェクトテストデータファクトリ
