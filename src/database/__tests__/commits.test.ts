@@ -1,8 +1,8 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { closeConnection } from "../connection.js";
-import { CommitsRepository, ProjectsRepository } from "../index.js";
-import type { NewCommit } from "../schema/commits.js";
-import { withTransaction } from "../testing/transaction.js";
+import { closeConnection } from "@/database/connection.js";
+import { CommitsRepository, ProjectsRepository } from "@/database/index.js";
+import type { NewCommit } from "@/database/schema/commits.js";
+import { withTransaction } from "@/database/testing/transaction.js";
 import {
 	createCommitData,
 	createMultipleCommitsData,

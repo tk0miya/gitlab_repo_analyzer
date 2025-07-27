@@ -1,5 +1,5 @@
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import type * as schema from "../schema/index.js";
+import type * as schema from "@/database/schema/index.js";
 
 /**
  * トランザクション内でコードを実行し、自動的にロールバックするユーティリティ関数
@@ -8,7 +8,7 @@ import type * as schema from "../schema/index.js";
 export async function withTransaction<T>(
 	testFn: (tx: NodePgDatabase<typeof schema>) => Promise<T>,
 ): Promise<T> {
-	const { db } = await import("../connection.js");
+	const { db } = await import("@/database/connection.js");
 
 	let result: T | undefined;
 	let hasResult = false;
