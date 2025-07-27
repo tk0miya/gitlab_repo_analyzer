@@ -2,11 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🚨 重要: PR作成必須
-
-**GitHub Action環境のため、すべての変更は必ずPRを作成すること**
-- 変更完了後: `gh pr create` を必ず実行
-- PR作成なしでは成果物が失われる
 
 ## 言語設定
 
@@ -121,11 +116,6 @@ src/
    git push origin <branch-name>
    ```
 
-3. **PR作成 (必須)**
-   ```bash
-   gh pr create --title "タイトル" --body "説明"
-   ```
-   ⚠️ **GitHub Action環境では必須**: 実行しないと成果物が失われる
 
 ### コミット管理
 

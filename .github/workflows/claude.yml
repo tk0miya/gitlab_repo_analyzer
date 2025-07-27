@@ -72,11 +72,14 @@ jobs:
           # Optional: Allow Claude to run specific commands
           allowed_tools: "Bash(git:*), Bash(gh:*), Bash(npm:*), Bash(node:*), Bash(mkdir:*), Bash(rm:*), Bash(ls:*), Bash(echo:*), Bash(npx:*), Bash(cat:*)"
           
-          # Optional: Add custom instructions for Claude to customize its behavior for your project
-          # custom_instructions: |
-          #   Follow our coding standards
-          #   Ensure all new code has tests
-          #   Use TypeScript for new files
+          # Add custom instructions for Claude to customize its behavior for your project
+          custom_instructions: |
+            GitHub Actions環境では以下のルールを厳格に守ること：
+            1. コード変更完了後は必ず `gh pr create` で PR を自動作成する
+            2. PRリンクの提示ではなく、実際のPR作成を実行する
+            3. 日本語でコミットメッセージとPR説明を作成する
+            4. 作業完了時にはPR URLを返すこと
+            5. GitHub Actions環境であることを認識し、自動化された処理として動作する
           
           # Optional: Custom environment variables for Claude
           claude_env: |
