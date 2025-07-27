@@ -1,4 +1,5 @@
-import type { NewProject } from "../../schema/projects.js";
+import type { NewProject } from "@/database/schema/projects";
+import type { Project } from "@/types/api";
 
 /**
  * プロジェクトテストデータファクトリ
@@ -49,4 +50,69 @@ export function createMultipleProjectsData(
 				: undefined,
 		}),
 	);
+}
+
+let registeredIdCounter = 1; // 登録済みプロジェクト用のIDカウンター
+
+/**
+ * 登録済みプロジェクトデータを生成します（API レスポンス用）
+ * idとcreated_atを含む完全なProjectオブジェクトを生成します
+ * @param overrides - オーバーライドしたいフィールド
+ * @returns Project オブジェクト
+ */
+export function createRegisteredProjectData(
+	overrides: Partial<Project> = {},
+): Project {
+	const id = overrides.id ?? registeredIdCounter++;
+
+	// NewProjectに含まれるフィールドのみを抽出してbaseProjectDataを作成
+	const newProjectOverrides: Partial<NewProject> = {};
+	if (overrides.gitlab_id !== undefined)
+		newProjectOverrides.gitlab_id = overrides.gitlab_id;
+	if (overrides.name !== undefined) newProjectOverrides.name = overrides.name;
+	if (overrides.description !== undefined)
+		newProjectOverrides.description = overrides.description;
+	if (overrides.web_url !== undefined)
+		newProjectOverrides.web_url = overrides.web_url;
+	if (overrides.default_branch !== undefined)
+		newProjectOverrides.default_branch = overrides.default_branch;
+	if (overrides.visibility !== undefined)
+		newProjectOverrides.visibility = overrides.visibility;
+	if (overrides.gitlab_created_at !== undefined)
+		newProjectOverrides.gitlab_created_at = overrides.gitlab_created_at;
+
+	const baseProjectData = createProjectData(newProjectOverrides);
+
+	const result = {
+		id,
+		created_at: overrides.created_at ?? new Date("2023-01-01T00:00:00Z"),
+		...baseProjectData,
+		...overrides,
+	};
+
+	// undefinedをnullに変換し、型制約を満たすようにAPI型との整合性を保つ
+	return {
+		...result,
+		description: result.description ?? null,
+		visibility: result.visibility as "public" | "internal" | "private",
+	};
+}
+
+/**
+ * 複数の登録済みプロジェクトデータを生成します（API レスポンス用）
+ * @param count - 生成するプロジェクト数
+ * @param baseOverrides - 全プロジェクトに適用するベースオーバーライド
+ * @returns Project配列
+ */
+export function createMultipleRegisteredProjectsData(
+	count: number,
+	baseOverrides: Partial<Project> = {},
+): Project[] {
+	return Array.from({ length: count }, (_, index) => {
+		const projectOverrides = { ...baseOverrides };
+		if (baseOverrides.name) {
+			projectOverrides.name = `${baseOverrides.name}-${index + 1}`;
+		}
+		return createRegisteredProjectData(projectOverrides);
+	});
 }

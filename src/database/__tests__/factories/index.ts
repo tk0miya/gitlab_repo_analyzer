@@ -13,7 +13,9 @@ export {
 // プロジェクト関連のファクトリ関数
 export {
 	createMultipleProjectsData,
+	createMultipleRegisteredProjectsData,
 	createProjectData,
+	createRegisteredProjectData,
 } from "./projects.js";
 
 // 同期ログ関連のファクトリ関数
