@@ -55,9 +55,8 @@ async function postHandler(
 ) {
 	try {
 		// リクエストボディのバリデーション
-		const validatedData: ProjectCreateApiRequest = ProjectCreateApiSchema.parse(
-			req.body,
-		);
+		const projectRequest: ProjectCreateApiRequest =
+			ProjectCreateApiSchema.parse(req.body);
 
 		// 設定読み込み
 		const config = await loadConfig();
@@ -71,7 +70,7 @@ async function postHandler(
 
 		// GitLab プロジェクト ID で重複チェック
 		const existingProject = await projectsRepository.findByGitlabId(
-			validatedData.gitlab_project_id,
+			projectRequest.gitlab_project_id,
 		);
 		if (existingProject) {
 			res
@@ -79,7 +78,7 @@ async function postHandler(
 				.json(
 					createErrorResponse(
 						"指定されたGitLab プロジェクトIDは既に登録済みです",
-						`GitLab ID: ${validatedData.gitlab_project_id}`,
+						`GitLab ID: ${projectRequest.gitlab_project_id}`,
 					),
 				);
 			return;
@@ -89,7 +88,7 @@ async function postHandler(
 		let gitlabProject: GitLabProject;
 		try {
 			gitlabProject = await gitlabClient.getProject(
-				validatedData.gitlab_project_id.toString(),
+				projectRequest.gitlab_project_id.toString(),
 			);
 		} catch (error) {
 			res
@@ -104,13 +103,13 @@ async function postHandler(
 		}
 
 		// 取得したプロジェクト情報とリクエストURLの整合性チェック
-		if (gitlabProject.web_url !== validatedData.url) {
+		if (gitlabProject.web_url !== projectRequest.url) {
 			res
 				.status(400)
 				.json(
 					createErrorResponse(
 						"指定されたURLとGitLab プロジェクトIDが一致しません",
-						`GitLab API URL: ${gitlabProject.web_url}, リクエスト URL: ${validatedData.url}`,
+						`GitLab API URL: ${gitlabProject.web_url}, リクエスト URL: ${projectRequest.url}`,
 					),
 				);
 			return;
