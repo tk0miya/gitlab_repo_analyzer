@@ -9,6 +9,7 @@ import handler from "../projects/[id].js";
 vi.mock("@/database/index", () => ({
 	projectsRepository: {
 		findById: vi.fn(),
+		delete: vi.fn(),
 	},
 }));
 
@@ -169,6 +170,91 @@ describe("/api/projects/[id]", () => {
 		});
 	});
 
+	describe("DELETE /api/projects/:id", () => {
+		it("指定されたIDのプロジェクトを削除し204を返す", async () => {
+			vi.mocked(projectsRepository.delete).mockResolvedValue(true);
+
+			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+				method: "DELETE",
+				query: { id: "1" },
+			});
+
+			await handler(req, res);
+
+			expect(res._getStatusCode()).toBe(204);
+			expect(res._getData()).toBe("");
+
+			// repositoryのdeleteが正しい引数で呼び出されたことを確認
+			expect(projectsRepository.delete).toHaveBeenCalledTimes(1);
+			expect(projectsRepository.delete).toHaveBeenCalledWith(1);
+		});
+
+		it("存在しないプロジェクトでも冪等性により204を返す", async () => {
+			vi.mocked(projectsRepository.delete).mockResolvedValue(false);
+
+			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+				method: "DELETE",
+				query: { id: "999999" },
+			});
+
+			await handler(req, res);
+
+			expect(res._getStatusCode()).toBe(204);
+			expect(res._getData()).toBe("");
+
+			expect(projectsRepository.delete).toHaveBeenCalledWith(999999);
+		});
+
+		it("無効なID（負の数）で400エラーを返す", async () => {
+			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+				method: "DELETE",
+				query: { id: "-1" },
+			});
+
+			await handler(req, res);
+
+			expect(res._getStatusCode()).toBe(400);
+
+			const responseData = JSON.parse(res._getData());
+			expect(responseData).toMatchObject({
+				success: false,
+				timestamp: expect.any(String),
+				error: {
+					message: "IDが無効です",
+					details: expect.stringContaining("数値である必要があります"),
+				},
+			});
+
+			// 無効なIDの場合はdeleteが呼ばれない
+			expect(projectsRepository.delete).not.toHaveBeenCalled();
+		});
+
+		it("データベースエラー時に500エラーを返す", async () => {
+			const errorMessage = "Database connection error";
+			vi.mocked(projectsRepository.delete).mockRejectedValue(
+				new Error(errorMessage),
+			);
+
+			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+				method: "DELETE",
+				query: { id: "1" },
+			});
+
+			await handler(req, res);
+
+			expect(res._getStatusCode()).toBe(500);
+
+			const responseData = JSON.parse(res._getData());
+			expect(responseData).toMatchObject({
+				success: false,
+				timestamp: expect.any(String),
+				error: {
+					message: "サーバー内部でエラーが発生しました",
+				},
+			});
+		});
+	});
+
 	describe("Method not allowed", () => {
 		it("非対応HTTPメソッドで405エラーを返す", async () => {
 			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
@@ -179,7 +265,7 @@ describe("/api/projects/[id]", () => {
 			await handler(req, res);
 
 			expect(res._getStatusCode()).toBe(405);
-			expect(res._getHeaders()).toHaveProperty("allow", ["GET"]);
+			expect(res._getHeaders()).toHaveProperty("allow", ["GET", "DELETE"]);
 
 			const responseData = JSON.parse(res._getData());
 			expect(responseData).toMatchObject({

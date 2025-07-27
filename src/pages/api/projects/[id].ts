@@ -56,6 +56,38 @@ async function getHandler(
 	res.status(200).json(createSuccessResponse(projectDetail));
 }
 
+/**
+ * プロジェクト削除ハンドラー
+ */
+async function deleteHandler(
+	req: NextApiRequest,
+	res: NextApiResponse<ApiErrorResponse>,
+) {
+	const { id } = req.query;
+
+	// IDバリデーション
+	const parseResult = IdStringSchema.safeParse(id);
+	if (!parseResult.success) {
+		res
+			.status(400)
+			.json(
+				createErrorResponse(
+					"IDが無効です",
+					parseResult.error.errors.map((err) => err.message).join(", "),
+				),
+			);
+		return;
+	}
+
+	const projectId = parseResult.data;
+
+	// プロジェクトを削除（冪等性のため、存在しない場合も成功とする）
+	await projectsRepository.delete(projectId);
+
+	// 204 No Content を返す（冪等性を確保）
+	res.status(204).end();
+}
+
 export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse<ProjectDetailResponse | ApiErrorResponse>,
@@ -65,8 +97,11 @@ export default async function handler(
 			case "GET":
 				await getHandler(req, res);
 				break;
+			case "DELETE":
+				await deleteHandler(req, res);
+				break;
 			default:
-				res.setHeader("Allow", ["GET"]);
+				res.setHeader("Allow", ["GET", "DELETE"]);
 				res.status(405).json(createErrorResponse("Method not allowed"));
 				return;
 		}
