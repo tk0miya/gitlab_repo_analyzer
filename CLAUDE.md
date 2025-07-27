@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **ランタイム**: Node.js 22
 - **言語**: TypeScript
-- **開発環境**: VS Code Dev Containers
+- **開発環境**: VS Code Dev Containers / Docker Compose
 - **パッケージマネージャー**: npm
 - **テストフレームワーク**: Vitest
 - **リンター/フォーマッター**: Biome
@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 設定管理
 
 このプロジェクトは**環境変数のみ**で設定管理を行います。
-環境変数の設定方法は `.env.example` ファイルを参照してください。
+環境変数の設定方法は `env.example` ファイルを参照してください。
 ## コマンド
 
 ### 開発
