@@ -2,12 +2,12 @@ import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection } from "@/database/connection.js";
 import { CommitsRepository, ProjectsRepository } from "@/database/index.js";
 import type { NewCommit } from "@/database/schema/commits.js";
-import { withTransaction } from "@/database/testing/transaction.js";
 import {
 	createCommitData,
 	createMultipleCommitsData,
 	createProjectData,
-} from "./factories/index.js";
+} from "@/database/testing/factories/index.js";
+import { withTransaction } from "@/database/testing/transaction.js";
 
 describe("Commits Repository", () => {
 	afterAll(async () => {
