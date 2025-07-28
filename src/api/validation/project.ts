@@ -187,34 +187,3 @@ export const DatabaseProjectSchema = z.object({
  * 型安全なAPI用プロジェクト型
  */
 export type SafeApiProject = z.infer<typeof DatabaseProjectSchema>;
-
-/**
- * GitLab URL からプロジェクトスラッグ（path_with_namespace）を抽出
- * @param url GitLab プロジェクトのURL
- * @returns プロジェクトスラッグ（例: "group/project"）
- * @throws Error 無効なURLの場合
- */
-export function extractProjectSlugFromUrl(url: string): string {
-	try {
-		const parsed = new URL(url);
-		const pathParts = parsed.pathname
-			.split("/")
-			.filter((part) => part.length > 0);
-
-		if (pathParts.length < 2) {
-			throw new Error("URLからプロジェクトスラッグを抽出できません");
-		}
-
-		// group/project 形式のスラッグを抽出
-		// 最初の2つのパス部分を結合（subgroup対応のため残りも含める可能性がある）
-		return pathParts.join("/");
-	} catch (error) {
-		if (
-			error instanceof Error &&
-			error.message.includes("プロジェクトスラッグ")
-		) {
-			throw error;
-		}
-		throw new Error(`無効なURL形式です: ${url}`);
-	}
-}
