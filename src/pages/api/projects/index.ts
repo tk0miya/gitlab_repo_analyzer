@@ -82,16 +82,6 @@ async function postHandler(
 		const projectRequest: ProjectCreateApiRequest =
 			ProjectCreateApiSchema.parse(req.body);
 
-		// 設定読み込み
-		const config = await loadConfig();
-
-		// GitLab API クライアント作成
-		const gitlabClient = new GitLabApiClient({
-			baseUrl: config.gitlab.url,
-			token: config.gitlab.token,
-			timeout: config.gitlab.timeout,
-		});
-
 		// URL からプロジェクトスラッグを抽出
 		let projectSlug: string;
 		try {
@@ -107,6 +97,16 @@ async function postHandler(
 				);
 			return;
 		}
+
+		// 設定読み込み
+		const config = await loadConfig();
+
+		// GitLab API クライアント作成
+		const gitlabClient = new GitLabApiClient({
+			baseUrl: config.gitlab.url,
+			token: config.gitlab.token,
+			timeout: config.gitlab.timeout,
+		});
 
 		// GitLab APIからプロジェクト情報を取得
 		let gitlabProject: GitLabProject;
