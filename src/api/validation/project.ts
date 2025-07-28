@@ -163,6 +163,32 @@ export const ProjectCreateApiSchema = z.object({
 export type ProjectCreateApiRequest = z.infer<typeof ProjectCreateApiSchema>;
 
 /**
+ * データベースプロジェクト結果の型安全変換用スキーマ
+ * Drizzle ORMの結果をAPI型に変換する際に使用
+ */
+export const DatabaseProjectSchema = z.object({
+	id: z.number(),
+	gitlab_id: z.number(),
+	name: z.string(),
+	description: z.string().nullable(),
+	web_url: z.string(),
+	default_branch: z.string(),
+	visibility: z.enum(["public", "internal", "private"], {
+		errorMap: () => ({
+			message:
+				"可視性はpublic、internal、privateのいずれかである必要があります",
+		}),
+	}),
+	created_at: z.date(),
+	gitlab_created_at: z.date(),
+});
+
+/**
+ * 型安全なAPI用プロジェクト型
+ */
+export type SafeApiProject = z.infer<typeof DatabaseProjectSchema>;
+
+/**
  * GitLab URL からプロジェクトスラッグ（path_with_namespace）を抽出
  * @param url GitLab プロジェクトのURL
  * @returns プロジェクトスラッグ（例: "group/project"）

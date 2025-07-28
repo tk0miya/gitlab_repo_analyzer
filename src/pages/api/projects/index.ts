@@ -9,6 +9,7 @@ import {
 	formatZodErrors,
 } from "@/api/utils/response";
 import {
+	DatabaseProjectSchema,
 	extractProjectSlugFromUrl,
 	type ProjectCreateApiRequest,
 	ProjectCreateApiSchema,
@@ -31,18 +32,10 @@ async function getHandler(
 ) {
 	const dbProjects = await projectsRepository.findAll();
 
-	// データベース型からAPI型への変換
-	const projects = dbProjects.map((project) => ({
-		id: project.id,
-		gitlab_id: project.gitlab_id,
-		name: project.name,
-		description: project.description,
-		web_url: project.web_url,
-		default_branch: project.default_branch,
-		visibility: project.visibility as "public" | "internal" | "private",
-		created_at: project.created_at,
-		gitlab_created_at: project.gitlab_created_at,
-	}));
+	// データベース型からAPI型への型安全変換
+	const projects = dbProjects.map((project) =>
+		DatabaseProjectSchema.parse(project),
+	);
 
 	res.status(200).json(createSuccessResponse(projects));
 }
@@ -130,18 +123,8 @@ async function postHandler(
 		// データベースに保存（新規作成）
 		const savedProject = await projectsRepository.create(newProjectData);
 
-		// API用レスポンス形式に変換
-		const responseProject = {
-			id: savedProject.id,
-			gitlab_id: savedProject.gitlab_id,
-			name: savedProject.name,
-			description: savedProject.description,
-			web_url: savedProject.web_url,
-			default_branch: savedProject.default_branch,
-			visibility: savedProject.visibility as "public" | "internal" | "private",
-			created_at: savedProject.created_at,
-			gitlab_created_at: savedProject.gitlab_created_at,
-		};
+		// API用レスポンス形式に型安全変換
+		const responseProject = DatabaseProjectSchema.parse(savedProject);
 
 		res.status(201).json(createSuccessResponse(responseProject));
 	} catch (error) {
