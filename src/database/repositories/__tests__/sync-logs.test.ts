@@ -6,8 +6,11 @@ import {
 	SYNC_TYPES,
 	type SyncLog,
 } from "@/database/schema/sync-logs.js";
+import {
+	createProjectData,
+	createSyncLogData,
+} from "@/database/testing/factories/index.js";
 import { withTransaction } from "@/database/testing/transaction.js";
-import { createProjectData, createSyncLogData } from "./factories/index.js";
 
 describe("Sync Logs Repository", () => {
 	afterAll(async () => {

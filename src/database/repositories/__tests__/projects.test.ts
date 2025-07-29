@@ -2,8 +2,8 @@ import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection } from "@/database/connection.js";
 import { ProjectsRepository } from "@/database/index.js";
 import type { NewProject } from "@/database/schema/projects.js";
+import { createProjectData } from "@/database/testing/factories/index.js";
 import { withTransaction } from "@/database/testing/transaction.js";
-import { createProjectData } from "./factories/index.js";
 
 describe("Projects Repository", () => {
 	afterAll(async () => {
