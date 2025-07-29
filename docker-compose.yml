@@ -2,7 +2,7 @@ services:
   app:
     build: .
     ports:
-      - "8080:8080"
+      - "18080:18080"
     volumes:
       # ソースコードをバインドマウント（開発時の即座反映用）
       - .:/app
@@ -28,6 +28,8 @@ services:
     # 開発用の設定
     stdin_open: true
     tty: true
+    # コンテナ起動時に依存関係インストールとNext.js開発サーバーを起動
+    command: sh -c "npm ci && npm run dev:web"
 
   postgres:
     image: postgres:16
