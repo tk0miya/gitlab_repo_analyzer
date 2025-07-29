@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import styles from "@/styles/Home.module.css";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface HealthData {
 	status: string;
@@ -40,50 +41,63 @@ export default function Home() {
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 			</Head>
 
-			<main className={styles.main}>
-				<header className={styles.header}>
-					<h1 className={styles.title}>GitLab Repository Analyzer</h1>
-					<p className={styles.subtitle}>
+			<main className="py-8 px-4 max-w-4xl mx-auto">
+				<header className="text-center mb-8">
+					<h1 className="text-3xl font-bold mb-2">
+						GitLab Repository Analyzer
+					</h1>
+					<p className="text-muted-foreground">
 						GitLabリポジトリの構造、品質、依存関係を分析するWebツール
 					</p>
 				</header>
 
-				<section className={styles.section}>
-					<h2 className={styles.sectionTitle}>システム状態</h2>
-
-					{loading ? (
-						<p>ヘルスチェック中...</p>
-					) : healthData ? (
-						<div className={styles.healthGrid}>
-							<div>
-								<strong>ステータス:</strong>
-								<span
-									className={
-										healthData.status === "healthy"
-											? styles.statusHealthy
-											: styles.statusUnhealthy
-									}
-								>
-									{healthData.status === "healthy" ? "正常" : "異常"}
-								</span>
+				<Card>
+					<CardHeader>
+						<CardTitle>システム状態</CardTitle>
+					</CardHeader>
+					<CardContent>
+						{loading ? (
+							<p className="text-muted-foreground">ヘルスチェック中...</p>
+						) : healthData ? (
+							<div className="grid gap-4 sm:grid-cols-2">
+								<div className="flex items-center gap-2">
+									<strong>ステータス:</strong>
+									<Badge
+										variant={
+											healthData.status === "healthy"
+												? "default"
+												: "destructive"
+										}
+									>
+										{healthData.status === "healthy" ? "正常" : "異常"}
+									</Badge>
+								</div>
+								<div>
+									<strong>最終確認:</strong>{" "}
+									<span className="text-muted-foreground ml-1">
+										{new Date(healthData.timestamp).toLocaleString("ja-JP")}
+									</span>
+								</div>
+								<div>
+									<strong>稼働時間:</strong>
+									<span className="text-muted-foreground ml-1">
+										{Math.floor(healthData.uptime)}秒
+									</span>
+								</div>
+								<div>
+									<strong>環境:</strong>
+									<span className="text-muted-foreground ml-1">
+										{healthData.environment}
+									</span>
+								</div>
 							</div>
-							<div>
-								<strong>最終確認:</strong>{" "}
-								{new Date(healthData.timestamp).toLocaleString("ja-JP")}
-							</div>
-							<div>
-								<strong>稼働時間:</strong> {Math.floor(healthData.uptime)}秒
-							</div>
-							<div>
-								<strong>環境:</strong> {healthData.environment}
-							</div>
-						</div>
-					) : (
-						<p className={styles.errorText}>
-							ヘルスチェックの取得に失敗しました
-						</p>
-					)}
-				</section>
+						) : (
+							<p className="text-destructive">
+								ヘルスチェックの取得に失敗しました
+							</p>
+						)}
+					</CardContent>
+				</Card>
 			</main>
 		</>
 	);
