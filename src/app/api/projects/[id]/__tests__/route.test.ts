@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE, GET } from "@/app/api/projects/[id]/route";
 import { createRegisteredProjectData } from "@/database/testing/factories/index";
@@ -36,7 +37,9 @@ describe("/api/projects/[id]（App Router）", () => {
 			vi.mocked(projectsRepository.findById).mockResolvedValue(mockProject);
 
 			// NextRequestのモック
-			const mockRequest = new Request("http://localhost/api/projects/1") as any;
+			const mockRequest = new Request(
+				"http://localhost/api/projects/1",
+			) as NextRequest;
 			const mockParams = { params: { id: "1" } };
 
 			const response = await GET(mockRequest, mockParams);
@@ -81,7 +84,9 @@ describe("/api/projects/[id]（App Router）", () => {
 
 			vi.mocked(projectsRepository.findById).mockResolvedValue(mockProject);
 
-			const mockRequest = new Request("http://localhost/api/projects/2") as any;
+			const mockRequest = new Request(
+				"http://localhost/api/projects/2",
+			) as NextRequest;
 			const mockParams = { params: { id: "2" } };
 
 			const response = await GET(mockRequest, mockParams);
@@ -99,7 +104,7 @@ describe("/api/projects/[id]（App Router）", () => {
 
 			const mockRequest = new Request(
 				"http://localhost/api/projects/999999",
-			) as any;
+			) as NextRequest;
 			const mockParams = { params: { id: "999999" } };
 
 			const response = await GET(mockRequest, mockParams);
@@ -121,7 +126,7 @@ describe("/api/projects/[id]（App Router）", () => {
 		it("無効なID（負の数）で400エラーを返す", async () => {
 			const mockRequest = new Request(
 				"http://localhost/api/projects/-1",
-			) as any;
+			) as NextRequest;
 			const mockParams = { params: { id: "-1" } };
 
 			const response = await GET(mockRequest, mockParams);
@@ -145,7 +150,9 @@ describe("/api/projects/[id]（App Router）", () => {
 				new Error(errorMessage),
 			);
 
-			const mockRequest = new Request("http://localhost/api/projects/1") as any;
+			const mockRequest = new Request(
+				"http://localhost/api/projects/1",
+			) as NextRequest;
 			const mockParams = { params: { id: "1" } };
 
 			const response = await GET(mockRequest, mockParams);
@@ -169,7 +176,7 @@ describe("/api/projects/[id]（App Router）", () => {
 
 			const mockRequest = new Request("http://localhost/api/projects/1", {
 				method: "DELETE",
-			}) as any;
+			}) as NextRequest;
 			const mockParams = { params: { id: "1" } };
 
 			const response = await DELETE(mockRequest, mockParams);
@@ -187,7 +194,7 @@ describe("/api/projects/[id]（App Router）", () => {
 
 			const mockRequest = new Request("http://localhost/api/projects/999999", {
 				method: "DELETE",
-			}) as any;
+			}) as NextRequest;
 			const mockParams = { params: { id: "999999" } };
 
 			const response = await DELETE(mockRequest, mockParams);
@@ -201,7 +208,7 @@ describe("/api/projects/[id]（App Router）", () => {
 		it("無効なID（負の数）で400エラーを返す", async () => {
 			const mockRequest = new Request("http://localhost/api/projects/-1", {
 				method: "DELETE",
-			}) as any;
+			}) as NextRequest;
 			const mockParams = { params: { id: "-1" } };
 
 			const response = await DELETE(mockRequest, mockParams);
@@ -230,7 +237,7 @@ describe("/api/projects/[id]（App Router）", () => {
 
 			const mockRequest = new Request("http://localhost/api/projects/1", {
 				method: "DELETE",
-			}) as any;
+			}) as NextRequest;
 			const mockParams = { params: { id: "1" } };
 
 			const response = await DELETE(mockRequest, mockParams);
