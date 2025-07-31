@@ -133,7 +133,12 @@ src/
 
 6. **コード品質**: Biomeでのリント・フォーマット、TypeScriptでの型安全性
 
-7. **開発原則**: 以下の原則に従ったコード設計・実装を行う
+7. **コミット前チェック**: Huskyとlint-stagedによる自動品質チェック
+   - 変更されたファイルのlint・format
+   - TypeScriptの型チェック
+   - 関連テストの実行（vitest related）
+
+8. **開発原則**: 以下の原則に従ったコード設計・実装を行う
    - **DRY原則 (Don't Repeat Yourself)**: 同じ情報を複数の場所で重複させない
    - **YAGNI原則 (You Ain't Gonna Need It)**: 現在必要でない機能は実装しない
    - **SOLID原則**: オブジェクト指向設計の5つの原則に従う
