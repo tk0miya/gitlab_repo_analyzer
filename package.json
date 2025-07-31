@@ -68,7 +68,7 @@
 	"lint-staged": {
 		"*.{ts,tsx}": [
 			"biome check --write",
-			"tsc --noEmit --incremental",
+			"bash -c 'npm run typecheck'",
 			"vitest related --run --passWithNoTests"
 		]
 	}
