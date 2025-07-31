@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { ConfigLoader } from "./loader.js";
+import { ConfigLoader } from "./loader";
 
 describe("ConfigLoader", () => {
 	let originalEnv: NodeJS.ProcessEnv;

@@ -3,7 +3,7 @@
  * ミニマル設定システム - GitLab TOKEN、データベース設定のみ設定可能
  */
 
-export { ConfigLoader, loadConfig } from "./loader.js";
+export { ConfigLoader, loadConfig } from "./loader";
 export {
 	type Config,
 	ConfigSchema,
@@ -11,4 +11,4 @@ export {
 	DatabaseConfigSchema,
 	type GitLabConfig,
 	GitLabConfigSchema,
-} from "./schema.js";
+} from "./schema";

@@ -1,1 +1,1 @@
-export * from "./sync-logs.js";
+export * from "./sync-logs";

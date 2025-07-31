@@ -1,13 +1,13 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { closeConnection } from "@/database/connection.js";
-import { CommitsRepository, ProjectsRepository } from "@/database/index.js";
-import type { NewCommit } from "@/database/schema/commits.js";
+import { closeConnection } from "@/database/connection";
+import { CommitsRepository, ProjectsRepository } from "@/database/index";
+import type { NewCommit } from "@/database/schema/commits";
 import {
 	createCommitData,
 	createMultipleCommitsData,
 	createProjectData,
-} from "@/database/testing/factories/index.js";
-import { withTransaction } from "@/database/testing/transaction.js";
+} from "@/database/testing/factories/index";
+import { withTransaction } from "@/database/testing/transaction";
 
 describe("Commits Repository", () => {
 	afterAll(async () => {

@@ -1,19 +1,19 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { db } from "@/database/connection.js";
+import { db } from "@/database/connection";
 import type {
 	CompleteSyncParams,
 	FailSyncParams,
 	FindSyncLogsParams,
-} from "@/database/repositories/types/sync-logs.js";
-import type * as schema from "@/database/schema/index.js";
+} from "@/database/repositories/types/sync-logs";
+import type * as schema from "@/database/schema/index";
 import {
 	type NewSyncLog,
 	SYNC_STATUSES,
 	type SyncLog,
 	type SyncType,
 	syncLogs,
-} from "@/database/schema/sync-logs.js";
+} from "@/database/schema/sync-logs";
 
 /**
  * 同期ログ操作のリポジトリクラス

@@ -1,4 +1,4 @@
-import type { SyncStatus, SyncType } from "@/database/schema/sync-logs.js";
+import type { SyncStatus, SyncType } from "@/database/schema/sync-logs";
 
 /**
  * 同期完了時のパラメータ

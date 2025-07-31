@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { loadConfig } from "./config/index.js";
+import { loadConfig } from "./config/index";
 
 /**
  * メインアプリケーションと設定システムのテストファイル

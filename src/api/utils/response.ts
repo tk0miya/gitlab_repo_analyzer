@@ -8,7 +8,7 @@ import type {
 	ApiResponse,
 	ApiSuccessResponse,
 	ValidationError,
-} from "../../types/api.js";
+} from "../../types/api";
 
 /**
  * 成功レスポンスを作成する

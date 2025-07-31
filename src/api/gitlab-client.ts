@@ -9,10 +9,10 @@ import type {
 	InternalAxiosRequestConfig,
 } from "axios";
 import axios from "axios";
-import type { GitLabCommit, GitLabCommitsQuery } from "./types/commit.js";
-import type { GitLabClientConfig } from "./types/common.js";
-import type { GitLabProject } from "./types/project.js";
-import type { GitLabUser } from "./types/user.js";
+import type { GitLabCommit, GitLabCommitsQuery } from "./types/commit";
+import type { GitLabClientConfig } from "./types/common";
+import type { GitLabProject } from "./types/project";
+import type { GitLabUser } from "./types/user";
 
 /**
  * GitLab APIクライアント

@@ -1,5 +1,5 @@
-import type { NewSyncLog } from "@/database/schema/sync-logs.js";
-import { SYNC_STATUSES, SYNC_TYPES } from "@/database/schema/sync-logs.js";
+import type { NewSyncLog } from "@/database/schema/sync-logs";
+import { SYNC_STATUSES, SYNC_TYPES } from "@/database/schema/sync-logs";
 
 /**
  * 同期ログテストデータファクトリ

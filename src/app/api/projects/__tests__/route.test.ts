@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { GET } from "@/app/api/projects/route";
 import { createMultipleRegisteredProjectsData } from "@/database/testing/factories/index";
 import type { Project } from "@/types/api";
-import handler from "../projects/index.js";
 
 // モジュールをモック
 vi.mock("@/database/index", () => ({
@@ -15,7 +13,7 @@ vi.mock("@/database/index", () => ({
 // モックを取得
 const { projectsRepository } = await import("@/database/index");
 
-describe("/api/projects", () => {
+describe("/api/projects（App Router）", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
@@ -41,15 +39,11 @@ describe("/api/projects", () => {
 
 			vi.mocked(projectsRepository.findAll).mockResolvedValue(mockProjects);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "GET",
-			});
+			const response = await GET();
 
-			await handler(req, res);
+			expect(response.status).toBe(200);
 
-			expect(res._getStatusCode()).toBe(200);
-
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData).toMatchObject({
 				success: true,
 				timestamp: expect.any(String),
@@ -88,15 +82,11 @@ describe("/api/projects", () => {
 		it("空のプロジェクト一覧を返す", async () => {
 			vi.mocked(projectsRepository.findAll).mockResolvedValue([]);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "GET",
-			});
+			const response = await GET();
 
-			await handler(req, res);
+			expect(response.status).toBe(200);
 
-			expect(res._getStatusCode()).toBe(200);
-
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData).toMatchObject({
 				success: true,
 				timestamp: expect.any(String),
@@ -110,42 +100,16 @@ describe("/api/projects", () => {
 				new Error(errorMessage),
 			);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "GET",
-			});
+			const response = await GET();
 
-			await handler(req, res);
+			expect(response.status).toBe(500);
 
-			expect(res._getStatusCode()).toBe(500);
-
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData).toMatchObject({
 				success: false,
 				timestamp: expect.any(String),
 				error: {
 					message: "サーバー内部でエラーが発生しました",
-				},
-			});
-		});
-	});
-
-	describe("Method not allowed", () => {
-		it("非対応HTTPメソッドで405エラーを返す", async () => {
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "POST", // 代表的な非対応メソッドとしてPOSTを使用
-			});
-
-			await handler(req, res);
-
-			expect(res._getStatusCode()).toBe(405);
-			expect(res._getHeaders()).toHaveProperty("allow", ["GET"]);
-
-			const responseData = JSON.parse(res._getData());
-			expect(responseData).toMatchObject({
-				success: false,
-				timestamp: expect.any(String),
-				error: {
-					message: "Method not allowed",
 				},
 			});
 		});

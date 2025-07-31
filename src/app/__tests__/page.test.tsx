@@ -1,16 +1,8 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import Home from "@/pages/index";
+import Home from "@/app/page";
 
-// Mock Next.js Head component
-vi.mock("next/head", () => {
-	return {
-		default: ({ children }: { children: ReactNode }) => children,
-	};
-});
-
-describe("ホームページ", () => {
+describe("ホームページ（App Router）", () => {
 	beforeEach(() => {
 		// Reset fetch mock before each test
 		vi.resetAllMocks();

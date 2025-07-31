@@ -1,12 +1,12 @@
 import { asc, count, eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { db } from "@/database/connection.js";
-import type * as schema from "@/database/schema/index.js";
+import { db } from "@/database/connection";
+import type * as schema from "@/database/schema/index";
 import {
 	type NewProject,
 	type Project,
 	projects,
-} from "@/database/schema/projects.js";
+} from "@/database/schema/projects";
 
 /**
  * プロジェクト操作のリポジトリクラス

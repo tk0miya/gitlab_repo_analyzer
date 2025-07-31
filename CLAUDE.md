@@ -19,11 +19,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **ランタイム**: Node.js 22
 - **言語**: TypeScript
+- **フレームワーク**: Next.js 15（App Router）
 - **開発環境**: VS Code Dev Containers / Docker Compose
 - **パッケージマネージャー**: npm
 - **テストフレームワーク**: Vitest
 - **リンター/フォーマッター**: Biome
 - **データベース**: PostgreSQL + Drizzle ORM
+- **UIライブラリ**: shadcn/ui + Tailwind CSS
 
 ## 設定管理
 
@@ -36,11 +38,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # 依存関係のインストール
 npm install
 
-# アプリケーションの実行
+# CLIアプリケーションの実行
 npm start
 
-# 開発用実行（ホットリロード）
+# CLIアプリケーションの開発用実行（ホットリロード）
 npm run dev
+
+# Webアプリケーションの開発用実行
+npm run dev:web
 
 # テストの実行
 npm test
@@ -51,6 +56,10 @@ npm run typecheck
 # リンター/フォーマッター
 npm run lint
 npm run format
+
+# ビルド
+npm run build        # CLIアプリケーション
+npm run build:web    # Webアプリケーション
 ```
 
 ## アーキテクチャ
@@ -58,11 +67,43 @@ npm run format
 ### プロジェクト構造
 ```
 src/
+├── app/          # Next.js App Router（Webアプリケーション）
+│   ├── api/      # Route Handlers（REST API）
+│   ├── layout.tsx # ルートレイアウト
+│   └── page.tsx  # ホームページ
 ├── api/          # GitLab APIクライアントと型定義
+├── components/   # UIコンポーネント（shadcn/ui）
 ├── config/       # 設定管理（環境変数、スキーマ検証）
 ├── database/     # データベース関連（スキーマ、マイグレーション、リポジトリ）
-└── index.ts      # メインエントリーポイント
+│   ├── connection.ts  # DB接続管理
+│   ├── repositories/  # リポジトリパターン実装
+│   ├── schema/        # Drizzle ORMスキーマ定義
+│   └── testing/       # テスト用ファクトリ
+├── lib/          # 共通ユーティリティ
+├── styles/       # グローバルスタイル
+├── types/        # 共通型定義
+└── index.ts      # CLIエントリーポイント
 ```
+
+### ディレクトリ構成の原則
+
+1. **レイヤードアーキテクチャ**
+   - `app/`: プレゼンテーション層（UI、API Routes）
+   - `database/`: データアクセス層
+   - `api/`: 外部サービス統合層（GitLab API）
+   - `config/`: 設定管理層
+
+2. **責務の分離**
+   - 各ディレクトリは明確な責務を持つ
+   - 依存関係は上位層から下位層への単一方向
+
+3. **テストファイルの配置**
+   - 各モジュールの`__tests__`サブディレクトリに配置
+   - テスト対象ファイルと近い場所で管理
+
+4. **将来のServer Actions対応**
+   - 必要に応じて`src/server-actions/`ディレクトリを追加予定
+   - App RouterとServer Actionsの併用が可能
 
 ### 主要機能
 - **GitLab API統合**: プロジェクト、コミット、ユーザー情報の取得

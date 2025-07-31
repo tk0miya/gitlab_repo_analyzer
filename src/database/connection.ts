@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool, type PoolClient } from "pg";
-import { loadConfig } from "@/config/index.js";
-import * as schema from "./schema/index.js";
+import { loadConfig } from "@/config/index";
+import * as schema from "./schema/index";
 
 // 設定を読み込み
 const config = await loadConfig();

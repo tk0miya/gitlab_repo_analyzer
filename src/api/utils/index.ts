@@ -9,4 +9,4 @@ export {
 	formatZodErrors,
 	isErrorResponse,
 	isSuccessResponse,
-} from "./response.js";
+} from "./response";
