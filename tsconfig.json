@@ -48,9 +48,10 @@
     "allowJs": true
   },
   "include": [
+    "config/**/*",
     "next-env.d.ts",
     "src/**/*",
-    "config/**/*"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

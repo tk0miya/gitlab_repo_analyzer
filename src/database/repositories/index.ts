@@ -1,14 +1,14 @@
-export { CommitsRepository } from "./commits.js";
-export { ProjectsRepository } from "./projects.js";
-export { SyncLogsRepository } from "./sync-logs.js";
+export { CommitsRepository } from "./commits";
+export { ProjectsRepository } from "./projects";
+export { SyncLogsRepository } from "./sync-logs";
 
 // リポジトリ関連の型定義
-export * from "./types/index.js";
+export * from "./types/index";
 
 // シングルトンインスタンスをエクスポート
-import { CommitsRepository } from "./commits.js";
-import { ProjectsRepository } from "./projects.js";
-import { SyncLogsRepository } from "./sync-logs.js";
+import { CommitsRepository } from "./commits";
+import { ProjectsRepository } from "./projects";
+import { SyncLogsRepository } from "./sync-logs";
 
 export const commitsRepository = new CommitsRepository();
 export const projectsRepository = new ProjectsRepository();

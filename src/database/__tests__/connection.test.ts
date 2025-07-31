@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { closeConnection, testConnection } from "@/database/connection.js";
+import { closeConnection, testConnection } from "@/database/connection";
 
 describe("Database Connection", () => {
 	afterAll(async () => {

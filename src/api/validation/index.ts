@@ -7,11 +7,11 @@ export {
 	type Id,
 	IdSchema,
 	IdStringSchema,
-} from "./common.js";
+} from "./common";
 // プロジェクト関連バリデーション
 export {
 	type ProjectCreateRequest,
 	ProjectCreateSchema,
 	type ProjectUpdateRequest,
 	ProjectUpdateSchema,
-} from "./project.js";
+} from "./project";

@@ -3,17 +3,17 @@
  */
 
 // メインクライアント
-export { GitLabApiClient } from "./gitlab-client.js";
+export { GitLabApiClient } from "./gitlab-client";
 // コミット関連の型定義
 export type {
 	GitLabCommit,
 	GitLabCommitStats,
 	GitLabCommitsQuery,
 	GitLabCommitsResponse,
-} from "./types/commit.js";
+} from "./types/commit";
 // 型定義
-export type { GitLabClientConfig } from "./types/common.js";
-export type { GitLabProject } from "./types/project.js";
+export type { GitLabClientConfig } from "./types/common";
+export type { GitLabProject } from "./types/project";
 // リポジトリ関連の型定義
 export type {
 	GitLabBranch,
@@ -22,5 +22,5 @@ export type {
 	GitLabRepositoryStats,
 	GitLabRepositoryStatsOptions,
 	GitLabTag,
-} from "./types/repository.js";
-export type { GitLabUser } from "./types/user.js";
+} from "./types/repository";
+export type { GitLabUser } from "./types/user";

@@ -1,6 +1,6 @@
 import { config as loadEnv } from "dotenv";
-import type { Config } from "./schema.js";
-import { ConfigSchema } from "./schema.js";
+import type { Config } from "./schema";
+import { ConfigSchema } from "./schema";
 
 /**
  * 設定ローダー - 環境変数から設定を読み込み

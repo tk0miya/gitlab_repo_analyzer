@@ -1,4 +1,4 @@
-import type { NewCommit } from "@/database/schema/commits.js";
+import type { NewCommit } from "@/database/schema/commits";
 
 /**
  * コミットテストデータファクトリ

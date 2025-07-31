@@ -2,7 +2,7 @@
  * GitLabリポジトリ分析ツールのメインエントリーポイント
  */
 
-import { loadConfig } from "./config/index.js";
+import { loadConfig } from "./config/index";
 
 async function main(): Promise<void> {
 	try {

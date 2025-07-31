@@ -1,12 +1,12 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { db } from "@/database/connection.js";
+import { db } from "@/database/connection";
 import {
 	type Commit,
 	commits,
 	type NewCommit,
-} from "@/database/schema/commits.js";
-import type * as schema from "@/database/schema/index.js";
+} from "@/database/schema/commits";
+import type * as schema from "@/database/schema/index";
 
 /**
  * コミット操作のリポジトリクラス

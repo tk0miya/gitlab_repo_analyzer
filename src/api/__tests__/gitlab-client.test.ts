@@ -4,10 +4,10 @@
 
 import axios from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GitLabApiClient } from "@/api/gitlab-client.js";
-import type { GitLabCommit } from "@/api/types/commit.js";
-import type { GitLabProject } from "@/api/types/project.js";
-import type { GitLabUser } from "@/api/types/user.js";
+import { GitLabApiClient } from "@/api/gitlab-client";
+import type { GitLabCommit } from "@/api/types/commit";
+import type { GitLabProject } from "@/api/types/project";
+import type { GitLabUser } from "@/api/types/user";
 
 // axiosをモック
 vi.mock("axios");

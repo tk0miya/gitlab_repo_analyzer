@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DELETE, GET } from "@/app/api/projects/[id]/route";
 import { createRegisteredProjectData } from "@/database/testing/factories/index";
 import type { Project } from "@/types/api";
-import handler from "../projects/[id].js";
 
 // モジュールをモック
 vi.mock("@/database/index", () => ({
@@ -16,7 +14,7 @@ vi.mock("@/database/index", () => ({
 // モックを取得
 const { projectsRepository } = await import("@/database/index");
 
-describe("/api/projects/[id]", () => {
+describe("/api/projects/[id]（App Router）", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
@@ -37,16 +35,15 @@ describe("/api/projects/[id]", () => {
 
 			vi.mocked(projectsRepository.findById).mockResolvedValue(mockProject);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "GET",
-				query: { id: "1" },
-			});
+			// NextRequestのモック
+			const mockRequest = new Request("http://localhost/api/projects/1") as any;
+			const mockParams = { params: { id: "1" } };
 
-			await handler(req, res);
+			const response = await GET(mockRequest, mockParams);
 
-			expect(res._getStatusCode()).toBe(200);
+			expect(response.status).toBe(200);
 
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData).toMatchObject({
 				success: true,
 				timestamp: expect.any(String),
@@ -84,16 +81,14 @@ describe("/api/projects/[id]", () => {
 
 			vi.mocked(projectsRepository.findById).mockResolvedValue(mockProject);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "GET",
-				query: { id: "2" },
-			});
+			const mockRequest = new Request("http://localhost/api/projects/2") as any;
+			const mockParams = { params: { id: "2" } };
 
-			await handler(req, res);
+			const response = await GET(mockRequest, mockParams);
 
-			expect(res._getStatusCode()).toBe(200);
+			expect(response.status).toBe(200);
 
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData.data.description).toBeNull();
 			expect(responseData.data.visibility).toBe("private");
 			expect(responseData.data.default_branch).toBe("develop");
@@ -102,16 +97,16 @@ describe("/api/projects/[id]", () => {
 		it("存在しないIDで404エラーを返す", async () => {
 			vi.mocked(projectsRepository.findById).mockResolvedValue(null);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "GET",
-				query: { id: "999999" },
-			});
+			const mockRequest = new Request(
+				"http://localhost/api/projects/999999",
+			) as any;
+			const mockParams = { params: { id: "999999" } };
 
-			await handler(req, res);
+			const response = await GET(mockRequest, mockParams);
 
-			expect(res._getStatusCode()).toBe(404);
+			expect(response.status).toBe(404);
 
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData).toMatchObject({
 				success: false,
 				timestamp: expect.any(String),
@@ -124,16 +119,16 @@ describe("/api/projects/[id]", () => {
 		});
 
 		it("無効なID（負の数）で400エラーを返す", async () => {
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "GET",
-				query: { id: "-1" },
-			});
+			const mockRequest = new Request(
+				"http://localhost/api/projects/-1",
+			) as any;
+			const mockParams = { params: { id: "-1" } };
 
-			await handler(req, res);
+			const response = await GET(mockRequest, mockParams);
 
-			expect(res._getStatusCode()).toBe(400);
+			expect(response.status).toBe(400);
 
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData).toMatchObject({
 				success: false,
 				timestamp: expect.any(String),
@@ -150,16 +145,14 @@ describe("/api/projects/[id]", () => {
 				new Error(errorMessage),
 			);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "GET",
-				query: { id: "1" },
-			});
+			const mockRequest = new Request("http://localhost/api/projects/1") as any;
+			const mockParams = { params: { id: "1" } };
 
-			await handler(req, res);
+			const response = await GET(mockRequest, mockParams);
 
-			expect(res._getStatusCode()).toBe(500);
+			expect(response.status).toBe(500);
 
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData).toMatchObject({
 				success: false,
 				timestamp: expect.any(String),
@@ -174,15 +167,15 @@ describe("/api/projects/[id]", () => {
 		it("指定されたIDのプロジェクトを削除し204を返す", async () => {
 			vi.mocked(projectsRepository.delete).mockResolvedValue(true);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+			const mockRequest = new Request("http://localhost/api/projects/1", {
 				method: "DELETE",
-				query: { id: "1" },
-			});
+			}) as any;
+			const mockParams = { params: { id: "1" } };
 
-			await handler(req, res);
+			const response = await DELETE(mockRequest, mockParams);
 
-			expect(res._getStatusCode()).toBe(204);
-			expect(res._getData()).toBe("");
+			expect(response.status).toBe(204);
+			expect(await response.text()).toBe("");
 
 			// repositoryのdeleteが正しい引数で呼び出されたことを確認
 			expect(projectsRepository.delete).toHaveBeenCalledTimes(1);
@@ -192,30 +185,30 @@ describe("/api/projects/[id]", () => {
 		it("存在しないプロジェクトでも冪等性により204を返す", async () => {
 			vi.mocked(projectsRepository.delete).mockResolvedValue(false);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+			const mockRequest = new Request("http://localhost/api/projects/999999", {
 				method: "DELETE",
-				query: { id: "999999" },
-			});
+			}) as any;
+			const mockParams = { params: { id: "999999" } };
 
-			await handler(req, res);
+			const response = await DELETE(mockRequest, mockParams);
 
-			expect(res._getStatusCode()).toBe(204);
-			expect(res._getData()).toBe("");
+			expect(response.status).toBe(204);
+			expect(await response.text()).toBe("");
 
 			expect(projectsRepository.delete).toHaveBeenCalledWith(999999);
 		});
 
 		it("無効なID（負の数）で400エラーを返す", async () => {
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+			const mockRequest = new Request("http://localhost/api/projects/-1", {
 				method: "DELETE",
-				query: { id: "-1" },
-			});
+			}) as any;
+			const mockParams = { params: { id: "-1" } };
 
-			await handler(req, res);
+			const response = await DELETE(mockRequest, mockParams);
 
-			expect(res._getStatusCode()).toBe(400);
+			expect(response.status).toBe(400);
 
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData).toMatchObject({
 				success: false,
 				timestamp: expect.any(String),
@@ -235,44 +228,21 @@ describe("/api/projects/[id]", () => {
 				new Error(errorMessage),
 			);
 
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+			const mockRequest = new Request("http://localhost/api/projects/1", {
 				method: "DELETE",
-				query: { id: "1" },
-			});
+			}) as any;
+			const mockParams = { params: { id: "1" } };
 
-			await handler(req, res);
+			const response = await DELETE(mockRequest, mockParams);
 
-			expect(res._getStatusCode()).toBe(500);
+			expect(response.status).toBe(500);
 
-			const responseData = JSON.parse(res._getData());
+			const responseData = await response.json();
 			expect(responseData).toMatchObject({
 				success: false,
 				timestamp: expect.any(String),
 				error: {
 					message: "サーバー内部でエラーが発生しました",
-				},
-			});
-		});
-	});
-
-	describe("Method not allowed", () => {
-		it("非対応HTTPメソッドで405エラーを返す", async () => {
-			const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-				method: "POST",
-				query: { id: "1" },
-			});
-
-			await handler(req, res);
-
-			expect(res._getStatusCode()).toBe(405);
-			expect(res._getHeaders()).toHaveProperty("allow", ["GET", "DELETE"]);
-
-			const responseData = JSON.parse(res._getData());
-			expect(responseData).toMatchObject({
-				success: false,
-				timestamp: expect.any(String),
-				error: {
-					message: "Method not allowed",
 				},
 			});
 		});

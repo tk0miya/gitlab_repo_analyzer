@@ -9,19 +9,19 @@
 export {
 	createCommitData,
 	createMultipleCommitsData,
-} from "./commits.js";
+} from "./commits";
 // プロジェクト関連のファクトリ関数
 export {
 	createMultipleProjectsData,
 	createMultipleRegisteredProjectsData,
 	createProjectData,
 	createRegisteredProjectData,
-} from "./projects.js";
+} from "./projects";
 
 // 同期ログ関連のファクトリ関数
-export { createSyncLogData } from "./sync-logs.js";
+export { createSyncLogData } from "./sync-logs";
 
 // 今後他のエンティティのファクトリを追加する場合は、ここに追加してください
 // 例:
-// export { createUserData, createGroupData } from "./users.js";
-// export { createIssueData, createMergeRequestData } from "./gitlab.js";
+// export { createUserData, createGroupData } from "./users";
+// export { createIssueData, createMergeRequestData } from "./gitlab";
