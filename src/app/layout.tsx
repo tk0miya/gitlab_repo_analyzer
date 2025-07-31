@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import type { Metadata } from "next";
+import { GlobalNav } from "@/components/navigation/global-nav";
 
 export const metadata: Metadata = {
 	title: "GitLab Repository Analyzer",
@@ -14,7 +15,10 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="ja">
-			<body>{children}</body>
+			<body>
+				<GlobalNav />
+				<main>{children}</main>
+			</body>
 		</html>
 	);
 }
