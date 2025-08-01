@@ -38,7 +38,10 @@ export async function getDb() {
 	if (!_db) {
 		await initializeDatabase();
 	}
-	return _db!;
+	if (!_db) {
+		throw new Error("Failed to initialize database");
+	}
+	return _db;
 }
 
 /**
@@ -48,7 +51,10 @@ export async function getPool() {
 	if (!_pool) {
 		await initializeDatabase();
 	}
-	return _pool!;
+	if (!_pool) {
+		throw new Error("Failed to initialize database pool");
+	}
+	return _pool;
 }
 
 // データベース接続テスト

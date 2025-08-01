@@ -1,6 +1,4 @@
 import { asc, count, eq } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import type * as schema from "@/database/schema/index";
 import {
 	type NewProject,
 	type Project,

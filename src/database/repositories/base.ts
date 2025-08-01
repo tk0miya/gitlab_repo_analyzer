@@ -20,6 +20,9 @@ export abstract class BaseRepository {
 		if (!this.db) {
 			this.db = (await getDb()) as unknown as NodePgDatabase<typeof schema>;
 		}
-		return this.db!;
+		if (!this.db) {
+			throw new Error("Failed to get database instance");
+		}
+		return this.db;
 	}
 }

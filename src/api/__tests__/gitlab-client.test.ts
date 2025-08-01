@@ -60,11 +60,6 @@ function createMockCommits(
 }
 
 describe("GitLabApiClient", () => {
-	const mockConfig = {
-		baseUrl: "https://gitlab.example.com",
-		token: "test-token",
-	};
-
 	const mockAxiosInstance = {
 		get: vi.fn(),
 		post: vi.fn(),
