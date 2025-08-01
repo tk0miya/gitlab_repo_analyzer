@@ -11,7 +11,6 @@ import type {
 import axios from "axios";
 import { loadConfig } from "@/config/index";
 import type { GitLabCommit, GitLabCommitsQuery } from "./types/commit";
-import type { GitLabClientConfig } from "./types/common";
 import type { GitLabProject } from "./types/project";
 import type { GitLabUser } from "./types/user";
 

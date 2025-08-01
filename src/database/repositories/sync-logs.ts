@@ -1,11 +1,9 @@
 import { and, count, desc, eq } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type {
 	CompleteSyncParams,
 	FailSyncParams,
 	FindSyncLogsParams,
 } from "@/database/repositories/types/sync-logs";
-import type * as schema from "@/database/schema/index";
 import {
 	type NewSyncLog,
 	SYNC_STATUSES,
