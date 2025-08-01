@@ -9,6 +9,7 @@ import type {
 	InternalAxiosRequestConfig,
 } from "axios";
 import axios from "axios";
+import { loadConfig } from "@/config/index";
 import type { GitLabCommit, GitLabCommitsQuery } from "./types/commit";
 import type { GitLabClientConfig } from "./types/common";
 import type { GitLabProject } from "./types/project";
@@ -18,40 +19,38 @@ import type { GitLabUser } from "./types/user";
  * GitLab APIクライアント
  */
 export class GitLabApiClient {
-	private readonly client: AxiosInstance;
-	private readonly config: Required<GitLabClientConfig>;
+	private client?: AxiosInstance;
 
 	/**
-	 * GitLabApiClientのコンストラクター
+	 * 設定を読み込んでAxiosクライアントを取得
 	 */
-	constructor(config: GitLabClientConfig) {
-		// デフォルト値を設定
-		this.config = {
-			timeout: 10000,
-			...config,
-		};
+	private async getClient(): Promise<AxiosInstance> {
+		if (!this.client) {
+			const config = await loadConfig();
 
-		// axiosインスタンスを作成
-		this.client = axios.create({
-			baseURL: this.config.baseUrl,
-			timeout: this.config.timeout,
-			headers: {
-				Authorization: `Bearer ${this.config.token}`,
-				"Content-Type": "application/json",
-				"User-Agent": "gitlab_repo_analyzer/1.0.0",
-			},
-		});
+			// axiosインスタンスを作成
+			this.client = axios.create({
+				baseURL: config.gitlab.url,
+				timeout: config.gitlab.timeout,
+				headers: {
+					Authorization: `Bearer ${config.gitlab.token}`,
+					"Content-Type": "application/json",
+					"User-Agent": "gitlab_repo_analyzer/1.0.0",
+				},
+			});
 
-		// インターセプターを設定
-		this.setupInterceptors();
+			// インターセプターを設定
+			this.setupInterceptors(this.client);
+		}
+		return this.client;
 	}
 
 	/**
 	 * レスポンス・リクエストインターセプターを設定
 	 */
-	private setupInterceptors(): void {
+	private setupInterceptors(client: AxiosInstance): void {
 		// レスポンスインターセプター（エラーハンドリング）
-		this.client.interceptors.response.use(
+		client.interceptors.response.use(
 			(response: AxiosResponse) => response,
 			(error: AxiosError) => {
 				throw this.handleApiError(error);
@@ -59,7 +58,7 @@ export class GitLabApiClient {
 		);
 
 		// リクエストインターセプター（ログ記録等）
-		this.client.interceptors.request.use(
+		client.interceptors.request.use(
 			(config: InternalAxiosRequestConfig) => {
 				// デバッグログ（本番環境では無効化）
 				if (process.env.NODE_ENV === "development") {
@@ -114,7 +113,8 @@ export class GitLabApiClient {
 	 * 参考: https://docs.gitlab.com/ee/api/users.html#for-user
 	 */
 	async getCurrentUser(): Promise<GitLabUser> {
-		const response = await this.client.get("/api/v4/user");
+		const client = await this.getClient();
+		const response = await client.get("/api/v4/user");
 		return response.data;
 	}
 
@@ -128,7 +128,8 @@ export class GitLabApiClient {
 		// プロジェクトIDをURLエンコード
 		const encodedId = encodeURIComponent(id);
 
-		const response = await this.client.get(`/api/v4/projects/${encodedId}`);
+		const client = await this.getClient();
+		const response = await client.get(`/api/v4/projects/${encodedId}`);
 		return response.data;
 	}
 
@@ -155,6 +156,7 @@ export class GitLabApiClient {
 		options: GitLabCommitsQuery = {},
 	): AsyncGenerator<GitLabCommit[], void, unknown> {
 		const encodedId = encodeURIComponent(projectId);
+		const client = await this.getClient();
 
 		// デフォルト値を設定
 		const defaultOptions = {
@@ -183,7 +185,7 @@ export class GitLabApiClient {
 				params.toString() ? `?${params.toString()}` : ""
 			}`;
 
-			const response = await this.client.get(url);
+			const response = await client.get(url);
 
 			// コミットがない場合は終了
 			if (!response.data || response.data.length === 0) {

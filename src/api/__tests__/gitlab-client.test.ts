@@ -93,7 +93,7 @@ describe("GitLabApiClient", () => {
 		let client: GitLabApiClient;
 
 		beforeEach(() => {
-			client = new GitLabApiClient(mockConfig);
+			client = new GitLabApiClient();
 		});
 
 		it("現在のユーザー情報を正常に取得できる", async () => {
@@ -116,7 +116,7 @@ describe("GitLabApiClient", () => {
 		let client: GitLabApiClient;
 
 		beforeEach(() => {
-			client = new GitLabApiClient(mockConfig);
+			client = new GitLabApiClient();
 		});
 
 		it("プロジェクト情報を正常に取得できる", async () => {
@@ -141,7 +141,7 @@ describe("GitLabApiClient", () => {
 		let client: GitLabApiClient;
 
 		beforeEach(() => {
-			client = new GitLabApiClient(mockConfig);
+			client = new GitLabApiClient();
 		});
 
 		it("接続成功時にtrueを返す", async () => {
@@ -166,7 +166,7 @@ describe("GitLabApiClient", () => {
 		let client: GitLabApiClient;
 
 		beforeEach(() => {
-			client = new GitLabApiClient(mockConfig);
+			client = new GitLabApiClient();
 		});
 
 		it("プロジェクトのコミット一覧を正常に取得できる（ジェネレータ）", async () => {
@@ -287,7 +287,7 @@ describe("GitLabApiClient", () => {
 		let client: GitLabApiClient;
 
 		beforeEach(() => {
-			client = new GitLabApiClient(mockConfig);
+			client = new GitLabApiClient();
 		});
 
 		it("APIエラー時にErrorを投げる", async () => {
