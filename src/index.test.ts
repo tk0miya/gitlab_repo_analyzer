@@ -54,6 +54,11 @@ describe("設定システムテスト", () => {
 		delete process.env.DB_DATABASE;
 		delete process.env.DB_USERNAME;
 
-		await expect(loadConfig()).rejects.toThrow("設定の検証に失敗しました");
+		// ConfigLoaderのインスタンスを取得して.envファイル読み込みをスキップ
+		const { ConfigLoader } = await import("./config/loader");
+		const loader = ConfigLoader.getInstance();
+		loader.setSkipDotenv(true);
+
+		await expect(loader.load()).rejects.toThrow("設定の検証に失敗しました");
 	});
 });
