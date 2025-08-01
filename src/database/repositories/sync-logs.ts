@@ -1,6 +1,5 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { db } from "@/database/connection";
 import type {
 	CompleteSyncParams,
 	FailSyncParams,
@@ -14,18 +13,13 @@ import {
 	type SyncType,
 	syncLogs,
 } from "@/database/schema/sync-logs";
+import { BaseRepository } from "./base";
 
 /**
  * 同期ログ操作のリポジトリクラス
  * 同期履歴テーブルに対するCRUD操作と同期状態管理を提供
  */
-export class SyncLogsRepository {
-	private db: NodePgDatabase<typeof schema>;
-
-	constructor(database?: NodePgDatabase<typeof schema>) {
-		this.db = database || db;
-	}
-
+export class SyncLogsRepository extends BaseRepository {
 	// ==================== CREATE操作 ====================
 
 	/**
@@ -40,7 +34,8 @@ export class SyncLogsRepository {
 			status: syncLogData.status ?? SYNC_STATUSES.RUNNING,
 		};
 
-		const [created] = await this.db
+		const db = await this.getDatabase();
+		const [created] = await db
 			.insert(syncLogs)
 			.values(dataWithDefaults)
 			.returning();
@@ -59,10 +54,8 @@ export class SyncLogsRepository {
 	 * @returns 同期ログ情報（見つからない場合はnull）
 	 */
 	async findById(id: number): Promise<SyncLog | null> {
-		const [log] = await this.db
-			.select()
-			.from(syncLogs)
-			.where(eq(syncLogs.id, id));
+		const db = await this.getDatabase();
+		const [log] = await db.select().from(syncLogs).where(eq(syncLogs.id, id));
 		return log || null;
 	}
 
@@ -72,6 +65,7 @@ export class SyncLogsRepository {
 	 * @returns 同期ログ配列（開始日時降順でソート）
 	 */
 	async find(params: FindSyncLogsParams = {}): Promise<SyncLog[]> {
+		const db = await this.getDatabase();
 		const { project_id, sync_type, status, limit = 100, offset = 0 } = params;
 
 		// 条件を構築
@@ -88,7 +82,7 @@ export class SyncLogsRepository {
 
 		// 条件に応じてクエリを構築
 		if (conditions.length > 0) {
-			return await this.db
+			return await db
 				.select()
 				.from(syncLogs)
 				.where(and(...conditions))
@@ -96,7 +90,7 @@ export class SyncLogsRepository {
 				.limit(limit)
 				.offset(offset);
 		} else {
-			return await this.db
+			return await db
 				.select()
 				.from(syncLogs)
 				.orderBy(desc(syncLogs.started_at))
@@ -147,6 +141,7 @@ export class SyncLogsRepository {
 	async count(
 		params: Omit<FindSyncLogsParams, "limit" | "offset"> = {},
 	): Promise<number> {
+		const db = await this.getDatabase();
 		const { project_id, sync_type, status } = params;
 
 		// 条件を構築
@@ -164,12 +159,12 @@ export class SyncLogsRepository {
 		// 条件に応じてクエリを構築
 		let result: { count: number } | undefined;
 		if (conditions.length > 0) {
-			[result] = await this.db
+			[result] = await db
 				.select({ count: count() })
 				.from(syncLogs)
 				.where(and(...conditions));
 		} else {
-			[result] = await this.db.select({ count: count() }).from(syncLogs);
+			[result] = await db.select({ count: count() }).from(syncLogs);
 		}
 
 		return Number(result?.count || 0);
@@ -187,7 +182,8 @@ export class SyncLogsRepository {
 		id: number,
 		updateData: Partial<NewSyncLog>,
 	): Promise<SyncLog | null> {
-		const [updated] = await this.db
+		const db = await this.getDatabase();
+		const [updated] = await db
 			.update(syncLogs)
 			.set(updateData)
 			.where(eq(syncLogs.id, id))

@@ -14,18 +14,14 @@ describe("ConfigLoader", () => {
 		process.env = originalEnv;
 	});
 
-	test("デフォルト設定で初期化される", async () => {
-		// 環境変数をクリア
+	test("GitLabトークンが未設定の場合、バリデーションエラーが発生する", async () => {
+		// GitLabトークンのみクリア
 		delete process.env.GITLAB_TOKEN;
-		delete process.env.DB_HOST;
-		delete process.env.DB_DATABASE;
-		delete process.env.DB_USERNAME;
 
 		const loader = ConfigLoader.getInstance();
-		// .envファイルの読み込みをスキップしてテスト用設定を使用
 		loader.setSkipDotenv(true);
 
-		// バリデーションエラーが発生することを確認（必須項目が不足）
+		// Zodバリデーションエラーが発生することを確認
 		await expect(loader.load()).rejects.toThrow("設定の検証に失敗しました");
 	});
 

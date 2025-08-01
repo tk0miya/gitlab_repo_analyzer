@@ -1,24 +1,18 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { db } from "@/database/connection";
 import {
 	type Commit,
 	commits,
 	type NewCommit,
 } from "@/database/schema/commits";
 import type * as schema from "@/database/schema/index";
+import { BaseRepository } from "./base";
 
 /**
  * コミット操作のリポジトリクラス
  * commitsテーブルに対するCRUD操作を提供
  */
-export class CommitsRepository {
-	private db: NodePgDatabase<typeof schema>;
-
-	constructor(database?: NodePgDatabase<typeof schema>) {
-		this.db = database || db;
-	}
-
+export class CommitsRepository extends BaseRepository {
 	// ==================== CREATE操作 ====================
 
 	/**
@@ -27,10 +21,8 @@ export class CommitsRepository {
 	 * @returns 作成されたコミット
 	 */
 	async create(commitData: NewCommit): Promise<Commit> {
-		const [created] = await this.db
-			.insert(commits)
-			.values(commitData)
-			.returning();
+		const db = await this.getDatabase();
+		const [created] = await db.insert(commits).values(commitData).returning();
 		if (!created) {
 			throw new Error("コミットの作成に失敗しました");
 		}
@@ -47,10 +39,8 @@ export class CommitsRepository {
 			return [];
 		}
 
-		const created = await this.db
-			.insert(commits)
-			.values(commitsData)
-			.returning();
+		const db = await this.getDatabase();
+		const created = await db.insert(commits).values(commitsData).returning();
 		return created;
 	}
 
@@ -85,10 +75,8 @@ export class CommitsRepository {
 	 * @returns コミット情報（見つからない場合はnull）
 	 */
 	async findById(id: number): Promise<Commit | null> {
-		const [commit] = await this.db
-			.select()
-			.from(commits)
-			.where(eq(commits.id, id));
+		const db = await this.getDatabase();
+		const [commit] = await db.select().from(commits).where(eq(commits.id, id));
 		return commit || null;
 	}
 
@@ -99,7 +87,8 @@ export class CommitsRepository {
 	 * @returns コミット情報（見つからない場合はnull）
 	 */
 	async findBySha(projectId: number, sha: string): Promise<Commit | null> {
-		const [commit] = await this.db
+		const db = await this.getDatabase();
+		const [commit] = await db
 			.select()
 			.from(commits)
 			.where(and(eq(commits.project_id, projectId), eq(commits.sha, sha)));
@@ -118,7 +107,8 @@ export class CommitsRepository {
 		limit: number = 100,
 		offset: number = 0,
 	): Promise<Commit[]> {
-		return await this.db
+		const db = await this.getDatabase();
+		return await db
 			.select()
 			.from(commits)
 			.where(eq(commits.project_id, projectId))
@@ -141,7 +131,8 @@ export class CommitsRepository {
 		limit: number = 100,
 		offset: number = 0,
 	): Promise<Commit[]> {
-		return await this.db
+		const db = await this.getDatabase();
+		return await db
 			.select()
 			.from(commits)
 			.where(
@@ -161,7 +152,8 @@ export class CommitsRepository {
 	 * @returns コミット総数
 	 */
 	async countByProject(projectId: number): Promise<number> {
-		const [result] = await this.db
+		const db = await this.getDatabase();
+		const [result] = await db
 			.select({ count: count() })
 			.from(commits)
 			.where(eq(commits.project_id, projectId));
@@ -180,7 +172,8 @@ export class CommitsRepository {
 		id: number,
 		updateData: Partial<NewCommit>,
 	): Promise<Commit | null> {
-		const [updated] = await this.db
+		const db = await this.getDatabase();
+		const [updated] = await db
 			.update(commits)
 			.set(updateData)
 			.where(eq(commits.id, id))
@@ -196,7 +189,8 @@ export class CommitsRepository {
 	 * @returns 削除成功の場合true
 	 */
 	async delete(id: number): Promise<boolean> {
-		const [deleted] = await this.db
+		const db = await this.getDatabase();
+		const [deleted] = await db
 			.delete(commits)
 			.where(eq(commits.id, id))
 			.returning();
