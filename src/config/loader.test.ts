@@ -22,6 +22,8 @@ describe("ConfigLoader", () => {
 		delete process.env.DB_USERNAME;
 
 		const loader = ConfigLoader.getInstance();
+		// .envファイルの読み込みをスキップしてテスト用設定を使用
+		loader.setSkipDotenv(true);
 
 		// バリデーションエラーが発生することを確認（必須項目が不足）
 		await expect(loader.load()).rejects.toThrow("設定の検証に失敗しました");
@@ -69,6 +71,8 @@ describe("ConfigLoader", () => {
 		process.env.DB_PORT = "invalid"; // 数値以外（無効）
 
 		const loader = ConfigLoader.getInstance();
+		// .envファイルの読み込みをスキップしてテスト用設定を使用
+		loader.setSkipDotenv(true);
 
 		// バリデーションエラーが発生することを確認
 		await expect(loader.load()).rejects.toThrow("設定の検証に失敗しました");

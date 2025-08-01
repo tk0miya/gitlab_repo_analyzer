@@ -30,8 +30,7 @@ export async function testConnection(): Promise<boolean> {
 	let client: PoolClient | null = null;
 	try {
 		client = await pool.connect();
-		const result = await client.query("SELECT NOW()");
-		console.log("データベース接続成功:", result.rows[0].now);
+		await client.query("SELECT NOW()");
 		return true;
 	} catch (error) {
 		console.error("データベース接続エラー:", error);
@@ -47,7 +46,6 @@ export async function testConnection(): Promise<boolean> {
 export async function closeConnection(): Promise<void> {
 	try {
 		await pool.end();
-		console.log("データベース接続プールを正常に終了しました");
 	} catch (error) {
 		console.error("データベース接続プール終了エラー:", error);
 	}

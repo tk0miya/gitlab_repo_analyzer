@@ -7,6 +7,7 @@ import { ConfigSchema } from "./schema";
  */
 export class ConfigLoader {
 	private static instance: ConfigLoader;
+	private skipDotenv: boolean = false;
 
 	private constructor() {}
 
@@ -18,11 +19,21 @@ export class ConfigLoader {
 	}
 
 	/**
+	 * .envファイルの読み込みをスキップするかどうかを設定
+	 * テスト用途で環境変数のみから設定を読み込む場合に使用
+	 */
+	public setSkipDotenv(skip: boolean): void {
+		this.skipDotenv = skip;
+	}
+
+	/**
 	 * 設定を読み込んで検証済みの設定オブジェクトを返す
 	 */
 	public async load(): Promise<Config> {
 		// 環境変数を読み込み（.envファイルとシステム環境変数）
-		loadEnv();
+		if (!this.skipDotenv) {
+			loadEnv();
+		}
 
 		// 環境変数から設定を構築
 		const rawConfig = {
