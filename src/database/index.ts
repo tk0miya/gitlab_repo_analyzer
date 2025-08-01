@@ -2,7 +2,7 @@
 // 全てのデータベース機能をこのファイルから提供
 
 // 接続とコア機能
-export { closeConnection, db, pool, testConnection } from "./connection";
+export { closeConnection, getDb, getPool, testConnection } from "./connection";
 // リポジトリクラスとインスタンス
 export * from "./repositories/index";
 // スキーマ定義

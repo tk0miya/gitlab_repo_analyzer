@@ -1,34 +1,26 @@
 import { asc, count, eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { db } from "@/database/connection";
 import type * as schema from "@/database/schema/index";
 import {
 	type NewProject,
 	type Project,
 	projects,
 } from "@/database/schema/projects";
+import { BaseRepository } from "./base";
 
 /**
  * プロジェクト操作のリポジトリクラス
  * プロジェクトテーブルに対するCRUD操作を提供
  */
-export class ProjectsRepository {
-	private db: NodePgDatabase<typeof schema>;
-
-	constructor(database?: NodePgDatabase<typeof schema>) {
-		this.db = database || db;
-	}
-
+export class ProjectsRepository extends BaseRepository {
 	/**
 	 * プロジェクトを作成
 	 * @param projectData 新規プロジェクトデータ
 	 * @returns 作成されたプロジェクト
 	 */
 	async create(projectData: NewProject): Promise<Project> {
-		const [created] = await this.db
-			.insert(projects)
-			.values(projectData)
-			.returning();
+		const db = await this.getDatabase();
+		const [created] = await db.insert(projects).values(projectData).returning();
 		if (!created) {
 			throw new Error("プロジェクトの作成に失敗しました");
 		}
@@ -41,7 +33,8 @@ export class ProjectsRepository {
 	 * @returns プロジェクト情報（見つからない場合はnull）
 	 */
 	async findById(id: number): Promise<Project | null> {
-		const [project] = await this.db
+		const db = await this.getDatabase();
+		const [project] = await db
 			.select()
 			.from(projects)
 			.where(eq(projects.id, id));
@@ -54,7 +47,8 @@ export class ProjectsRepository {
 	 * @returns プロジェクト情報（見つからない場合はnull）
 	 */
 	async findByGitlabId(gitlabId: number): Promise<Project | null> {
-		const [project] = await this.db
+		const db = await this.getDatabase();
+		const [project] = await db
 			.select()
 			.from(projects)
 			.where(eq(projects.gitlab_id, gitlabId));
@@ -68,7 +62,8 @@ export class ProjectsRepository {
 	 * @returns プロジェクト配列（name昇順でソート）
 	 */
 	async findAll(limit: number = 100, offset: number = 0): Promise<Project[]> {
-		return await this.db
+		const db = await this.getDatabase();
+		return await db
 			.select()
 			.from(projects)
 			.orderBy(asc(projects.name))
@@ -81,7 +76,8 @@ export class ProjectsRepository {
 	 * @returns プロジェクト総数
 	 */
 	async count(): Promise<number> {
-		const [result] = await this.db.select({ count: count() }).from(projects);
+		const db = await this.getDatabase();
+		const [result] = await db.select({ count: count() }).from(projects);
 		return Number(result?.count || 0);
 	}
 
@@ -95,7 +91,8 @@ export class ProjectsRepository {
 		id: number,
 		updateData: Partial<NewProject>,
 	): Promise<Project | null> {
-		const [updated] = await this.db
+		const db = await this.getDatabase();
+		const [updated] = await db
 			.update(projects)
 			.set(updateData)
 			.where(eq(projects.id, id))
@@ -109,7 +106,8 @@ export class ProjectsRepository {
 	 * @returns 削除成功の場合true
 	 */
 	async delete(id: number): Promise<boolean> {
-		const [deleted] = await this.db
+		const db = await this.getDatabase();
+		const [deleted] = await db
 			.delete(projects)
 			.where(eq(projects.id, id))
 			.returning();

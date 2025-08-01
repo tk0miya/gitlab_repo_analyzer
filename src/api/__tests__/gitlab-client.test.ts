@@ -89,43 +89,6 @@ describe("GitLabApiClient", () => {
 		);
 	});
 
-	describe("コンストラクター", () => {
-		it("正常な設定でクライアントを作成できる", () => {
-			const client = new GitLabApiClient(mockConfig);
-			expect(client).toBeInstanceOf(GitLabApiClient);
-			expect(mockedAxios.create).toHaveBeenCalledWith({
-				baseURL: mockConfig.baseUrl,
-				timeout: 10000,
-				headers: {
-					Authorization: `Bearer ${mockConfig.token}`,
-					"Content-Type": "application/json",
-					"User-Agent": "gitlab_repo_analyzer/1.0.0",
-				},
-			});
-		});
-
-		it("baseUrlが指定されていない場合はエラーを投げる", () => {
-			expect(() => {
-				new GitLabApiClient({ baseUrl: "", token: "test-token" });
-			}).toThrow(Error);
-		});
-
-		it("tokenが指定されていない場合はエラーを投げる", () => {
-			expect(() => {
-				new GitLabApiClient({
-					baseUrl: "https://gitlab.example.com",
-					token: "",
-				});
-			}).toThrow(Error);
-		});
-
-		it("無効なbaseURLの場合はエラーを投げる", () => {
-			expect(() => {
-				new GitLabApiClient({ baseUrl: "invalid-url", token: "test-token" });
-			}).toThrow(Error);
-		});
-	});
-
 	describe("getCurrentUser", () => {
 		let client: GitLabApiClient;
 

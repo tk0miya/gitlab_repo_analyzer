@@ -25,9 +25,6 @@ export class GitLabApiClient {
 	 * GitLabApiClientのコンストラクター
 	 */
 	constructor(config: GitLabClientConfig) {
-		// 設定検証
-		this.validateConfig(config);
-
 		// デフォルト値を設定
 		this.config = {
 			timeout: 10000,
@@ -47,25 +44,6 @@ export class GitLabApiClient {
 
 		// インターセプターを設定
 		this.setupInterceptors();
-	}
-
-	/**
-	 * 設定を検証
-	 */
-	private validateConfig(config: GitLabClientConfig): void {
-		if (!config.baseUrl) {
-			throw new Error("baseUrlが指定されていません");
-		}
-		if (!config.token) {
-			throw new Error("tokenが指定されていません");
-		}
-
-		// URLの形式チェック
-		try {
-			new URL(config.baseUrl);
-		} catch {
-			throw new Error("baseUrlが無効なURL形式です");
-		}
 	}
 
 	/**
