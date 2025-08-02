@@ -72,27 +72,26 @@ export async function getDb(): Promise<DatabaseContext> {
  * ネスト可能で、エラーが発生した場合は自動的にロールバックされる
  * トランザクション内では getDb() が透過的にトランザクションを返す
  * @param callback トランザクション内で実行する関数
- * @returns コールバックの戻り値
  */
-export async function transaction<T>(callback: () => Promise<T>): Promise<T> {
+export async function transaction(
+	callback: () => Promise<void>,
+): Promise<void> {
 	// 現在のトランザクションを取得
 	const currentTransaction = transactionContext.getStore();
 
 	if (currentTransaction) {
 		// 既存のトランザクションがある場合はネストしたトランザクションとして実行
-		return await currentTransaction.transaction(
-			async (nestedTx: Transaction) => {
-				return await transactionContext.run(nestedTx, async () => {
-					return await callback();
-				});
-			},
-		);
+		await currentTransaction.transaction(async (nestedTx: Transaction) => {
+			await transactionContext.run(nestedTx, async () => {
+				await callback();
+			});
+		});
 	} else {
 		// 新しいトランザクションを開始
 		const db = await getDb();
-		return await db.transaction(async (tx) => {
-			return await transactionContext.run(tx, async () => {
-				return await callback();
+		await db.transaction(async (tx) => {
+			await transactionContext.run(tx, async () => {
+				await callback();
 			});
 		});
 	}
