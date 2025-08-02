@@ -140,18 +140,16 @@ describe("Sync Logs Repository", () => {
 				const project2 = await createProject();
 
 				// 各プロジェクトで同期ログを作成
-				const syncLogData1 = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project1.id,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				const syncLogData2 = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project2.id,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				await syncLogsRepository.create(syncLogData1);
-				await syncLogsRepository.create(syncLogData2);
 
 				const logs = await syncLogsRepository.find({
 					project_id: project1.id,
@@ -170,20 +168,18 @@ describe("Sync Logs Repository", () => {
 				const project = await createProject();
 
 				// 異なるタイプの同期ログを作成
-				const projectsData = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.PROJECTS,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				const commitsData = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.COMMITS,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				await syncLogsRepository.create(projectsData);
-				await syncLogsRepository.create(commitsData);
 
 				const projectsLogs = await syncLogsRepository.find({
 					sync_type: SYNC_TYPES.PROJECTS,
@@ -210,12 +206,11 @@ describe("Sync Logs Repository", () => {
 				const project = await createProject();
 
 				// 同期ログを作成して完了させる
-				const syncLogData = buildNewSyncLog({
+				const started = await createSyncLog({
 					project_id: project.id,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				const started = await syncLogsRepository.create(syncLogData);
 				const completeParams = {
 					records_processed: 100,
 					records_added: 50,
@@ -274,12 +269,11 @@ describe("Sync Logs Repository", () => {
 				const project = await createProject();
 
 				// 同期ログを作成
-				const syncLogData = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project.id,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				await syncLogsRepository.create(syncLogData);
 
 				const logs = await syncLogsRepository.findByProject(project.id);
 
@@ -321,16 +315,14 @@ describe("Sync Logs Repository", () => {
 				const project = await createProject();
 
 				// 複数の同期ログを作成（時間をずらして）
+				const baseTime = new Date();
 				let lastStarted: SyncLog | undefined;
 				for (let i = 0; i < 3; i++) {
-					const syncLogData = buildNewSyncLog({
+					lastStarted = await createSyncLog({
 						project_id: project.id,
 						status: SYNC_STATUSES.RUNNING,
-						started_at: new Date(),
+						started_at: new Date(baseTime.getTime() + i * 1000), // 1秒ずつずらす
 					});
-					lastStarted = await syncLogsRepository.create(syncLogData);
-					// 少し待って次のログの開始時間をずらす
-					await new Promise((resolve) => setTimeout(resolve, 10));
 				}
 
 				const latest = await syncLogsRepository.findLatest(project.id);
@@ -347,21 +339,19 @@ describe("Sync Logs Repository", () => {
 				const project = await createProject();
 
 				// 異なるタイプの同期ログを作成
-				const projectsParams = buildNewSyncLog({
+				const baseTime = new Date();
+				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.PROJECTS,
 					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					started_at: baseTime,
 				});
-				const commitsParams = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.COMMITS,
 					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					started_at: new Date(baseTime.getTime() + 1000), // 1秒後
 				});
-				await syncLogsRepository.create(projectsParams);
-				await new Promise((resolve) => setTimeout(resolve, 10)); // 時間をずらす
-				await syncLogsRepository.create(commitsParams);
 
 				const latestProjects = await syncLogsRepository.findLatest(
 					project.id,
@@ -398,12 +388,11 @@ describe("Sync Logs Repository", () => {
 				const initialCount = await syncLogsRepository.count();
 
 				// 同期ログを作成
-				const syncLogData = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project.id,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				await syncLogsRepository.create(syncLogData);
 
 				const newCount = await syncLogsRepository.count();
 				expect(newCount).toBe(initialCount + 1);
@@ -421,20 +410,18 @@ describe("Sync Logs Repository", () => {
 				});
 
 				// プロジェクト1の同期ログを作成
-				const syncLogData1 = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project1.id,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				await syncLogsRepository.create(syncLogData1);
 
 				// プロジェクト2の同期ログを作成
-				const syncLogData2 = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project2.id,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				await syncLogsRepository.create(syncLogData2);
 
 				const newCount1 = await syncLogsRepository.count({
 					project_id: project1.id,
@@ -458,13 +445,12 @@ describe("Sync Logs Repository", () => {
 				});
 
 				// projects同期ログを作成
-				const projectsParams = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.PROJECTS,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				await syncLogsRepository.create(projectsParams);
 
 				const newProjectsCount = await syncLogsRepository.count({
 					sync_type: SYNC_TYPES.PROJECTS,
@@ -484,12 +470,11 @@ describe("Sync Logs Repository", () => {
 				});
 
 				// running状態の同期ログを作成
-				const syncLogData = buildNewSyncLog({
+				await createSyncLog({
 					project_id: project.id,
 					status: SYNC_STATUSES.RUNNING,
 					started_at: new Date(),
 				});
-				await syncLogsRepository.create(syncLogData);
 
 				const newRunningCount = await syncLogsRepository.count({
 					status: SYNC_STATUSES.RUNNING,
