@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE, GET } from "@/app/api/projects/[id]/route";
-import { createRegisteredProjectData } from "@/database/testing/factories/index";
-import type { Project } from "@/types/api";
+import type { Project } from "@/database/schema/projects";
+import { buildProject } from "@/database/testing/factories/index";
 
 // モジュールをモック
 vi.mock("@/database/index", () => ({
@@ -27,7 +27,7 @@ describe("/api/projects/[id]（App Router）", () => {
 	describe("GET /api/projects/:id", () => {
 		it("指定されたIDのプロジェクト詳細を返す", async () => {
 			// ファクトリーでテストデータを準備
-			const mockProject: Project = createRegisteredProjectData({
+			const mockProject: Project = buildProject({
 				id: 1,
 				description: "Test project description",
 				default_branch: "main",
@@ -75,7 +75,7 @@ describe("/api/projects/[id]（App Router）", () => {
 
 		it("descriptionがnullのプロジェクト詳細を返す", async () => {
 			// ファクトリーでテストデータを準備
-			const mockProject: Project = createRegisteredProjectData({
+			const mockProject: Project = buildProject({
 				id: 2,
 				description: null,
 				default_branch: "develop",

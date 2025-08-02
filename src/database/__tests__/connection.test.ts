@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection, getDb, transaction } from "@/database/connection";
 import { ProjectsRepository } from "@/database/repositories/projects";
-import { createProjectData } from "@/database/testing/factories/index";
+import { createProject } from "@/database/testing/factories/index";
 import { withTransaction } from "@/database/testing/transaction";
 
 describe("connection.ts", () => {
@@ -21,12 +21,10 @@ describe("connection.ts", () => {
 				const repo = new ProjectsRepository();
 
 				await transaction(async () => {
-					await repo.create(
-						createProjectData({
-							name: "Context Test Project",
-							gitlab_id: 10005,
-						}),
-					);
+					await createProject({
+						name: "Context Test Project",
+						gitlab_id: 10005,
+					});
 
 					// 同じトランザクション内で検索すると見つかる
 					const projects = await repo.findAll();
@@ -43,21 +41,17 @@ describe("connection.ts", () => {
 				const repo = new ProjectsRepository();
 
 				// 外側のトランザクションでデータ作成
-				await repo.create(
-					createProjectData({
-						name: "Outer Context Project",
-						gitlab_id: 10006,
-					}),
-				);
+				await createProject({
+					name: "Outer Context Project",
+					gitlab_id: 10006,
+				});
 
 				await transaction(async () => {
 					// 内側のトランザクションでデータ作成
-					await repo.create(
-						createProjectData({
-							name: "Inner Context Project",
-							gitlab_id: 10007,
-						}),
-					);
+					await createProject({
+						name: "Inner Context Project",
+						gitlab_id: 10007,
+					});
 
 					// 内側のトランザクションで両方が見える
 					const projects = await repo.findAll();
@@ -81,12 +75,10 @@ describe("connection.ts", () => {
 
 				let createdProject: { id: number; name: string } | undefined;
 				await transaction(async () => {
-					createdProject = await repo.create(
-						createProjectData({
-							name: "Production Test Project",
-							gitlab_id: 10001,
-						}),
-					);
+					createdProject = await createProject({
+						name: "Production Test Project",
+						gitlab_id: 10001,
+					});
 				});
 
 				// transaction完了後にプロジェクトが作成されていることを確認
@@ -108,12 +100,10 @@ describe("connection.ts", () => {
 			try {
 				await transaction(async () => {
 					const repo = new ProjectsRepository();
-					await repo.create(
-						createProjectData({
-							name: "Will be rolled back",
-							gitlab_id: 11001,
-						}),
-					);
+					await createProject({
+						name: "Will be rolled back",
+						gitlab_id: 11001,
+					});
 
 					throw new Error("Transaction should rollback");
 				});
@@ -136,20 +126,16 @@ describe("connection.ts", () => {
 			await transaction(async () => {
 				const repo = new ProjectsRepository();
 
-				const outerProject = await repo.create(
-					createProjectData({
-						name: "Outer Transaction Project",
-						gitlab_id: 12001,
-					}),
-				);
+				const outerProject = await createProject({
+					name: "Outer Transaction Project",
+					gitlab_id: 12001,
+				});
 
 				await transaction(async () => {
-					const innerProject = await repo.create(
-						createProjectData({
-							name: "Inner Transaction Project",
-							gitlab_id: 12020,
-						}),
-					);
+					const innerProject = await createProject({
+						name: "Inner Transaction Project",
+						gitlab_id: 12020,
+					});
 
 					// 両方のプロジェクトが見える
 					const foundOuter = await repo.findById(outerProject.id);
@@ -182,21 +168,17 @@ describe("connection.ts", () => {
 			try {
 				await transaction(async () => {
 					const repo = new ProjectsRepository();
-					await repo.create(
-						createProjectData({
-							name: "Outer Before Error",
-							gitlab_id: 12004,
-						}),
-					);
+					await createProject({
+						name: "Outer Before Error",
+						gitlab_id: 12004,
+					});
 					outerProjectCreated = true;
 
 					await transaction(async () => {
-						await repo.create(
-							createProjectData({
-								name: "Inner Before Error",
-								gitlab_id: 12005,
-							}),
-						);
+						await createProject({
+							name: "Inner Before Error",
+							gitlab_id: 12005,
+						});
 
 						throw new Error("Inner transaction error");
 					});

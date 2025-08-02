@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection, transaction } from "@/database/connection";
-import { ProjectsRepository } from "@/database/repositories/projects";
-import { createProjectData } from "@/database/testing/factories/index";
+import { projectsRepository } from "@/database/repositories";
+import { createProject } from "@/database/testing/factories/index";
 import { withTransaction } from "@/database/testing/transaction";
 
 describe("withTransaction(): テスト用トランザクション", () => {
@@ -14,21 +14,17 @@ describe("withTransaction(): テスト用トランザクション", () => {
 
 		await withTransaction(async () => {
 			executionReached = true;
-			const repo = new ProjectsRepository();
-			await repo.create(
-				createProjectData({
-					name: "Success but rolled back",
-					gitlab_id: 11002,
-				}),
-			);
+			await createProject({
+				name: "Success but rolled back",
+				gitlab_id: 11002,
+			});
 		});
 
 		// 処理は正常に完了している
 		expect(executionReached).toBe(true);
 
 		// しかしデータはロールバックされて存在しない（withTransactionの仕様）
-		const repo = new ProjectsRepository();
-		const projects = await repo.findAll();
+		const projects = await projectsRepository.findAll();
 		const testProjects = projects.filter(
 			(p) => p.name === "Success but rolled back",
 		);
@@ -42,13 +38,10 @@ describe("withTransaction(): テスト用トランザクション", () => {
 		try {
 			await withTransaction(async () => {
 				executionReached = true;
-				const repo = new ProjectsRepository();
-				await repo.create(
-					createProjectData({
-						name: "Error and rolled back",
-						gitlab_id: 11003,
-					}),
-				);
+				await createProject({
+					name: "Error and rolled back",
+					gitlab_id: 11003,
+				});
 
 				// 意図的にエラーを発生
 				throw new Error("Test error in withTransaction");
@@ -62,8 +55,7 @@ describe("withTransaction(): テスト用トランザクション", () => {
 		expect(caughtError?.message).toBe("Test error in withTransaction");
 
 		// データはロールバックされて存在しない
-		const repo = new ProjectsRepository();
-		const projects = await repo.findAll();
+		const projects = await projectsRepository.findAll();
 		const testProjects = projects.filter(
 			(p) => p.name === "Error and rolled back",
 		);
@@ -72,19 +64,15 @@ describe("withTransaction(): テスト用トランザクション", () => {
 
 	it("withTransaction内でtransaction()を使用する想定パターン", async () => {
 		await withTransaction(async () => {
-			const repo = new ProjectsRepository();
-
 			// 想定パターン: withTransaction内でtransactionを使用（本番処理の呼び出し）
 			await transaction(async () => {
-				await repo.create(
-					createProjectData({
-						name: "Nested Transaction Project",
-						gitlab_id: 11004,
-					}),
-				);
+				await createProject({
+					name: "Nested Transaction Project",
+					gitlab_id: 11004,
+				});
 
 				// transaction内で作成されたデータが見える
-				const projects = await repo.findAll();
+				const projects = await projectsRepository.findAll();
 				const nestedProjects = projects.filter(
 					(p) => p.name === "Nested Transaction Project",
 				);
@@ -92,7 +80,7 @@ describe("withTransaction(): テスト用トランザクション", () => {
 			});
 
 			// transaction完了後、withTransactionスコープ内ではデータが見える
-			const projects = await repo.findAll();
+			const projects = await projectsRepository.findAll();
 			const nestedProjects = projects.filter(
 				(p) => p.name === "Nested Transaction Project",
 			);
@@ -100,8 +88,7 @@ describe("withTransaction(): テスト用トランザクション", () => {
 		});
 
 		// withTransaction完了後はデータが存在しない（強制ロールバックされた）
-		const repo = new ProjectsRepository();
-		const projects = await repo.findAll();
+		const projects = await projectsRepository.findAll();
 		const nestedProjects = projects.filter(
 			(p) => p.name === "Nested Transaction Project",
 		);

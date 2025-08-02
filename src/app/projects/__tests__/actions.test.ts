@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { closeConnection } from "@/database/connection";
 import { ProjectsRepository } from "@/database/repositories/projects";
-import { createProjectData } from "@/database/testing/factories";
+import { createProject } from "@/database/testing/factories";
 import { withTransaction } from "@/database/testing/transaction";
 import { getProjects } from "../actions";
 
@@ -17,15 +17,9 @@ describe("getProjects Server Action", () => {
 
 	it("プロジェクト一覧を正常に取得できる", async () => {
 		await withTransaction(async () => {
-			const projectsRepository = new ProjectsRepository();
-
 			// テストデータを作成
-			await projectsRepository.create(
-				createProjectData({ name: "プロジェクトA" }),
-			);
-			await projectsRepository.create(
-				createProjectData({ name: "プロジェクトB" }),
-			);
+			await createProject({ name: "プロジェクトA" });
+			await createProject({ name: "プロジェクトB" });
 
 			// Server Actionを実行
 			const result = await getProjects();
