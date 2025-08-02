@@ -1,8 +1,12 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection } from "@/database/connection";
-import { ProjectsRepository } from "@/database/index";
+import { projectsRepository } from "@/database/repositories";
 import type { NewProject } from "@/database/schema/projects";
-import { createProjectData } from "@/database/testing/factories/index";
+import {
+	buildNewProject,
+	createProject,
+	createProjects,
+} from "@/database/testing/factories/index";
 import { withTransaction } from "@/database/testing/transaction";
 
 describe("Projects Repository", () => {
@@ -13,20 +17,19 @@ describe("Projects Repository", () => {
 	describe("create", () => {
 		it("should create a new project", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const testProject = createProjectData();
-				const created = await projectsRepository.create(testProject);
+				const testProject = buildNewProject();
+				const project = await projectsRepository.create(testProject);
 
-				expect(created).toBeDefined();
-				expect(created.id).toBeDefined();
-				expect(created.gitlab_id).toBe(testProject.gitlab_id);
-				expect(created.name).toBe(testProject.name);
-				expect(created.description).toBe(testProject.description);
-				expect(created.web_url).toBe(testProject.web_url);
-				expect(created.default_branch).toBe(testProject.default_branch);
-				expect(created.visibility).toBe(testProject.visibility);
-				expect(created.created_at).toBeDefined();
-				expect(created.gitlab_created_at).toEqual(
+				expect(project).toBeDefined();
+				expect(project.id).toBeDefined();
+				expect(project.gitlab_id).toBe(testProject.gitlab_id);
+				expect(project.name).toBe(testProject.name);
+				expect(project.description).toBe(testProject.description);
+				expect(project.web_url).toBe(testProject.web_url);
+				expect(project.default_branch).toBe(testProject.default_branch);
+				expect(project.visibility).toBe(testProject.visibility);
+				expect(project.created_at).toBeDefined();
+				expect(project.gitlab_created_at).toEqual(
 					testProject.gitlab_created_at,
 				);
 			});
@@ -34,9 +37,8 @@ describe("Projects Repository", () => {
 
 		it("should throw error when creation fails", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				// 必須フィールドが欠如したデータで失敗をテスト
-				const validData = createProjectData();
+				const validData = buildNewProject();
 				const invalidProject = { ...validData };
 				// biome-ignore lint/suspicious/noExplicitAny: テスト用途での型回避のため必要
 				delete (invalidProject as any).name;
@@ -49,8 +51,7 @@ describe("Projects Repository", () => {
 
 		it("should handle duplicate GitLab ID", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const testProject = createProjectData();
+				const testProject = buildNewProject();
 				// 最初のプロジェクトを作成
 				const _created = await projectsRepository.create(testProject);
 
@@ -63,22 +64,19 @@ describe("Projects Repository", () => {
 	describe("findById", () => {
 		it("should find project by internal ID", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const testProject = createProjectData();
-				// テストデータを作成
-				const created = await projectsRepository.create(testProject);
+				// テストプロジェクトを作成
+				const project = await createProject();
 
-				const found = await projectsRepository.findById(created.id);
+				const found = await projectsRepository.findById(project.id);
 
 				expect(found).toBeDefined();
-				expect(found?.id).toBe(created.id);
-				expect(found?.gitlab_id).toBe(testProject.gitlab_id);
+				expect(found?.id).toBe(project.id);
+				expect(found?.gitlab_id).toBe(project.gitlab_id);
 			});
 		});
 
 		it("should return null for non-existent ID", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				const found = await projectsRepository.findById(999999);
 				expect(found).toBeNull();
 			});
@@ -88,24 +86,21 @@ describe("Projects Repository", () => {
 	describe("findByGitlabId", () => {
 		it("should find project by GitLab ID", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const testProject = createProjectData();
-				// テストデータを作成
-				const _created = await projectsRepository.create(testProject);
+				// テストプロジェクトを作成
+				const project = await createProject();
 
 				const found = await projectsRepository.findByGitlabId(
-					testProject.gitlab_id,
+					project.gitlab_id,
 				);
 
 				expect(found).toBeDefined();
-				expect(found?.gitlab_id).toBe(testProject.gitlab_id);
-				expect(found?.name).toBe(testProject.name);
+				expect(found?.gitlab_id).toBe(project.gitlab_id);
+				expect(found?.name).toBe(project.name);
 			});
 		});
 
 		it("should return null for non-existent GitLab ID", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				const found = await projectsRepository.findByGitlabId(999999);
 				expect(found).toBeNull();
 			});
@@ -115,12 +110,8 @@ describe("Projects Repository", () => {
 	describe("findAll", () => {
 		it("should return all projects with pagination", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				// テストデータを作成
-				const testProject1 = createProjectData();
-				const testProject2 = createProjectData();
-				const _created1 = await projectsRepository.create(testProject1);
-				const _created2 = await projectsRepository.create(testProject2);
+				await createProjects(2);
 
 				const projects = await projectsRepository.findAll(10, 0);
 
@@ -136,7 +127,6 @@ describe("Projects Repository", () => {
 
 		it("should respect limit parameter", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				const projects = await projectsRepository.findAll(1, 0);
 
 				expect(Array.isArray(projects)).toBe(true);
@@ -146,12 +136,8 @@ describe("Projects Repository", () => {
 
 		it("should respect offset parameter", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				// テストデータを作成
-				const testProject1 = createProjectData();
-				const testProject2 = createProjectData();
-				const _created1 = await projectsRepository.create(testProject1);
-				const _created2 = await projectsRepository.create(testProject2);
+				await createProjects(2);
 
 				const firstPage = await projectsRepository.findAll(1, 0);
 				const secondPage = await projectsRepository.findAll(1, 1);
@@ -167,11 +153,10 @@ describe("Projects Repository", () => {
 	describe("count", () => {
 		it("should return total count of projects", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				const initialCount = await projectsRepository.count();
 
 				// テストデータを作成
-				const testProject = createProjectData();
+				const testProject = buildNewProject();
 				const _created = await projectsRepository.create(testProject);
 
 				const newCount = await projectsRepository.count();
@@ -183,29 +168,26 @@ describe("Projects Repository", () => {
 	describe("update", () => {
 		it("should update existing project", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				// テストデータを作成
-				const testProject = createProjectData();
-				const created = await projectsRepository.create(testProject);
+				// テストプロジェクトを作成
+				const project = await createProject();
 
 				const updateData = {
 					name: "updated-project-name",
 					description: "Updated description",
 				};
 
-				const updated = await projectsRepository.update(created.id, updateData);
+				const updated = await projectsRepository.update(project.id, updateData);
 
 				expect(updated).toBeDefined();
-				expect(updated?.id).toBe(created.id);
+				expect(updated?.id).toBe(project.id);
 				expect(updated?.name).toBe(updateData.name);
 				expect(updated?.description).toBe(updateData.description);
-				expect(updated?.gitlab_id).toBe(created.gitlab_id); // 変更されていない
+				expect(updated?.gitlab_id).toBe(project.gitlab_id); // 変更されていない
 			});
 		});
 
 		it("should return null for non-existent project", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				const updated = await projectsRepository.update(999999, {
 					name: "test",
 				});
@@ -217,23 +199,20 @@ describe("Projects Repository", () => {
 	describe("delete", () => {
 		it("should delete existing project", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				// テストデータを作成
-				const testProject = createProjectData();
-				const created = await projectsRepository.create(testProject);
+				// テストプロジェクトを作成
+				const project = await createProject();
 
-				const deleted = await projectsRepository.delete(created.id);
+				const deleted = await projectsRepository.delete(project.id);
 				expect(deleted).toBe(true);
 
 				// 削除されたことを確認
-				const found = await projectsRepository.findById(created.id);
+				const found = await projectsRepository.findById(project.id);
 				expect(found).toBeNull();
 			});
 		});
 
 		it("should return false for non-existent project", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				const deleted = await projectsRepository.delete(999999);
 				expect(deleted).toBe(false);
 			});
@@ -243,8 +222,7 @@ describe("Projects Repository", () => {
 	describe("upsert", () => {
 		it("should create new project when it doesn't exist", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const testProject = createProjectData();
+				const testProject = buildNewProject();
 				const upserted = await projectsRepository.upsert(testProject);
 
 				expect(upserted).toBeDefined();
@@ -255,12 +233,11 @@ describe("Projects Repository", () => {
 
 		it("should update existing project when it exists", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
 				// 既存のプロジェクトを作成
-				const testProject = createProjectData();
-				const created = await projectsRepository.create(testProject);
+				const testProject = buildNewProject();
+				const project = await projectsRepository.create(testProject);
 
-				const updatedData: NewProject = createProjectData({
+				const updatedData: NewProject = buildNewProject({
 					gitlab_id: testProject.gitlab_id,
 					name: "updated-via-upsert",
 					description: "Updated via upsert",
@@ -268,7 +245,7 @@ describe("Projects Repository", () => {
 
 				const upserted = await projectsRepository.upsert(updatedData);
 
-				expect(upserted.id).toBe(created.id);
+				expect(upserted.id).toBe(project.id);
 				expect(upserted.name).toBe(updatedData.name);
 				expect(upserted.description).toBe(updatedData.description);
 			});
@@ -276,8 +253,7 @@ describe("Projects Repository", () => {
 
 		it("should throw error when GitLab ID is missing", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const validData = createProjectData();
+				const validData = buildNewProject();
 				const invalidData = { ...validData };
 				// biome-ignore lint/suspicious/noExplicitAny: テスト用途での型回避のため必要
 				delete (invalidData as any).gitlab_id;

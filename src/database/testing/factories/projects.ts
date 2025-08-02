@@ -1,21 +1,23 @@
-import type { NewProject } from "@/database/schema/projects";
-import type { Project } from "@/types/api";
+import { ProjectsRepository } from "@/database/repositories/projects";
+import type { NewProject, Project } from "@/database/schema/projects";
 
 /**
  * プロジェクトテストデータファクトリ
  *
  * このファクトリ関数群は、テスト間でプロジェクトデータを一貫して生成するために使用します。
- * デフォルトの値を提供し、必要に応じて特定のフィールドをオーバーライドできます。
+ * build系: インメモリオブジェクトの生成
+ * create系: データベースへの永続化を含む操作
  */
 
 let gitlabIdCounter = 100000; // テスト用のGitLab ID開始値
+let projectIdCounter = 1; // 登録済みプロジェクト用のIDカウンター
 
 /**
- * 基本的なプロジェクトデータを生成します
+ * NewProjectオブジェクトを生成します（インメモリ）
  * @param overrides - オーバーライドしたいフィールド
  * @returns NewProject オブジェクト
  */
-export function createProjectData(
+export function buildNewProject(
 	overrides: Partial<NewProject> = {},
 ): NewProject {
 	const gitlabId = overrides.gitlab_id ?? gitlabIdCounter++;
@@ -33,39 +35,14 @@ export function createProjectData(
 }
 
 /**
- * 複数のプロジェクトデータを生成します
- * @param count - 生成するプロジェクト数
- * @param baseOverrides - 全プロジェクトに適用するベースオーバーライド
- * @returns NewProject配列
- */
-export function createMultipleProjectsData(
-	count: number,
-	baseOverrides: Partial<NewProject> = {},
-): NewProject[] {
-	return Array.from({ length: count }, (_, index) => {
-		const overrides = { ...baseOverrides };
-		// nameが指定されている場合のみインデックスを追加
-		if (baseOverrides.name) {
-			overrides.name = `${baseOverrides.name}-${index + 1}`;
-		}
-		return createProjectData(overrides);
-	});
-}
-
-let registeredIdCounter = 1; // 登録済みプロジェクト用のIDカウンター
-
-/**
- * 登録済みプロジェクトデータを生成します（API レスポンス用）
- * idとcreated_atを含む完全なProjectオブジェクトを生成します
+ * Projectオブジェクトを生成します（インメモリ、idとcreated_atを含む）
  * @param overrides - オーバーライドしたいフィールド
  * @returns Project オブジェクト
  */
-export function createRegisteredProjectData(
-	overrides: Partial<Project> = {},
-): Project {
-	const id = overrides.id ?? registeredIdCounter++;
+export function buildProject(overrides: Partial<Project> = {}): Project {
+	const id = overrides.id ?? projectIdCounter++;
 
-	// NewProjectに含まれるフィールドのみを抽出してbaseProjectDataを作成
+	// NewProjectに含まれるフィールドのみを抽出
 	const newProjectOverrides: Partial<NewProject> = {};
 	if (overrides.gitlab_id !== undefined)
 		newProjectOverrides.gitlab_id = overrides.gitlab_id;
@@ -81,7 +58,7 @@ export function createRegisteredProjectData(
 	if (overrides.gitlab_created_at !== undefined)
 		newProjectOverrides.gitlab_created_at = overrides.gitlab_created_at;
 
-	const baseProjectData = createProjectData(newProjectOverrides);
+	const baseProjectData = buildNewProject(newProjectOverrides);
 
 	const result = {
 		id,
@@ -90,29 +67,63 @@ export function createRegisteredProjectData(
 		...overrides,
 	};
 
-	// undefinedをnullに変換し、型制約を満たすようにAPI型との整合性を保つ
+	// undefinedをnullに変換し、型制約を満たす
 	return {
 		...result,
 		description: result.description ?? null,
-		visibility: result.visibility as "public" | "internal" | "private",
 	};
 }
 
 /**
- * 複数の登録済みプロジェクトデータを生成します（API レスポンス用）
+ * 複数のProjectオブジェクトを生成します（インメモリ）
  * @param count - 生成するプロジェクト数
- * @param baseOverrides - 全プロジェクトに適用するベースオーバーライド
+ * @param overrides - 全プロジェクトに適用するオーバーライド
  * @returns Project配列
  */
-export function createMultipleRegisteredProjectsData(
+export function buildProjects(
 	count: number,
-	baseOverrides: Partial<Project> = {},
+	overrides: Partial<Project> = {},
 ): Project[] {
 	return Array.from({ length: count }, (_, index) => {
-		const projectOverrides = { ...baseOverrides };
-		if (baseOverrides.name) {
-			projectOverrides.name = `${baseOverrides.name}-${index + 1}`;
+		const projectOverrides = { ...overrides };
+		if (overrides.name) {
+			projectOverrides.name = `${overrides.name}-${index + 1}`;
 		}
-		return createRegisteredProjectData(projectOverrides);
+		return buildProject(projectOverrides);
 	});
+}
+
+/**
+ * プロジェクトをデータベースに作成します
+ * @param overrides - オーバーライドしたいフィールド
+ * @returns 作成されたProjectオブジェクト
+ */
+export async function createProject(
+	overrides: Partial<NewProject> = {},
+): Promise<Project> {
+	const projectsRepository = new ProjectsRepository();
+	const newProject = buildNewProject(overrides);
+	return await projectsRepository.create(newProject);
+}
+
+/**
+ * 複数のプロジェクトをデータベースに作成します
+ * @param count - 作成するプロジェクト数
+ * @param overrides - 全プロジェクトに適用するオーバーライド
+ * @returns 作成されたProject配列
+ */
+export async function createProjects(
+	count: number,
+	overrides: Partial<NewProject> = {},
+): Promise<Project[]> {
+	const projects: Project[] = [];
+	for (let i = 0; i < count; i++) {
+		const projectOverrides = { ...overrides };
+		if (overrides.name) {
+			projectOverrides.name = `${overrides.name}-${i + 1}`;
+		}
+		const project = await createProject(projectOverrides);
+		projects.push(project);
+	}
+	return projects;
 }

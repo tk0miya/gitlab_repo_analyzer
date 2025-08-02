@@ -1,8 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 import { closeConnection } from "@/database/connection";
-import { ProjectsRepository } from "@/database/repositories/projects";
-import { createProjectData } from "@/database/testing/factories";
+import { createProject } from "@/database/testing/factories";
 import { withTransaction } from "@/database/testing/transaction";
 import ProjectsPage from "../page";
 
@@ -49,18 +48,14 @@ describe("ProjectsPage", () => {
 
 	it("プロジェクトが存在する場合に正しく表示される", async () => {
 		await withTransaction(async () => {
-			const projectsRepository = new ProjectsRepository();
-
 			// テストデータを作成
-			await projectsRepository.create(
-				createProjectData({
-					name: "テストプロジェクト",
-					description: "プロジェクトの説明",
-					gitlab_id: 12345,
-					visibility: "private",
-					web_url: "https://gitlab.com/test/project",
-				}),
-			);
+			await createProject({
+				name: "テストプロジェクト",
+				description: "プロジェクトの説明",
+				gitlab_id: 12345,
+				visibility: "private",
+				web_url: "https://gitlab.com/test/project",
+			});
 
 			render(await ProjectsPage());
 
@@ -88,18 +83,10 @@ describe("ProjectsPage", () => {
 
 	it("複数のプロジェクトが表示される", async () => {
 		await withTransaction(async () => {
-			const projectsRepository = new ProjectsRepository();
-
 			// 複数のテストデータを作成
-			await projectsRepository.create(
-				createProjectData({ name: "プロジェクトA" }),
-			);
-			await projectsRepository.create(
-				createProjectData({ name: "プロジェクトB" }),
-			);
-			await projectsRepository.create(
-				createProjectData({ name: "プロジェクトC" }),
-			);
+			await createProject({ name: "プロジェクトA" });
+			await createProject({ name: "プロジェクトB" });
+			await createProject({ name: "プロジェクトC" });
 
 			render(await ProjectsPage());
 

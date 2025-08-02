@@ -1,11 +1,13 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection } from "@/database/connection";
-import { CommitsRepository, ProjectsRepository } from "@/database/index";
+import { commitsRepository } from "@/database/repositories";
 import type { NewCommit } from "@/database/schema/commits";
 import {
-	createCommitData,
-	createMultipleCommitsData,
-	createProjectData,
+	buildNewCommit,
+	buildNewCommits,
+	createCommit,
+	createCommits,
+	createProject,
 } from "@/database/testing/factories/index";
 import { withTransaction } from "@/database/testing/transaction";
 
@@ -19,35 +21,30 @@ describe("Commits Repository", () => {
 	describe("create", () => {
 		it("should create a new commit", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
-				const testCommit = createCommitData({ project_id: createdProject.id });
-				const created = await commitsRepository.create(testCommit);
+				const testCommit = buildNewCommit({ project_id: project.id });
+				const commit = await commitsRepository.create(testCommit);
 
-				expect(created).toBeDefined();
-				expect(created.id).toBeDefined();
-				expect(created.project_id).toBe(testCommit.project_id);
-				expect(created.sha).toBe(testCommit.sha);
-				expect(created.message).toBe(testCommit.message);
-				expect(created.author_name).toBe(testCommit.author_name);
-				expect(created.author_email).toBe(testCommit.author_email);
-				expect(created.author_date).toEqual(testCommit.author_date);
-				expect(created.additions).toBe(testCommit.additions);
-				expect(created.deletions).toBe(testCommit.deletions);
-				expect(created.created_at).toBeDefined();
+				expect(commit).toBeDefined();
+				expect(commit.id).toBeDefined();
+				expect(commit.project_id).toBe(testCommit.project_id);
+				expect(commit.sha).toBe(testCommit.sha);
+				expect(commit.message).toBe(testCommit.message);
+				expect(commit.author_name).toBe(testCommit.author_name);
+				expect(commit.author_email).toBe(testCommit.author_email);
+				expect(commit.author_date).toEqual(testCommit.author_date);
+				expect(commit.additions).toBe(testCommit.additions);
+				expect(commit.deletions).toBe(testCommit.deletions);
+				expect(commit.created_at).toBeDefined();
 			});
 		});
 
 		it("should throw error when creation fails", async () => {
 			await withTransaction(async () => {
-				const commitsRepository = new CommitsRepository();
 				// 無効なプロジェクトIDでコミット作成を試行
-				const invalidCommit = createCommitData({ project_id: 999999 });
+				const invalidCommit = buildNewCommit({ project_id: 999999 });
 
 				await expect(commitsRepository.create(invalidCommit)).rejects.toThrow();
 			});
@@ -55,14 +52,10 @@ describe("Commits Repository", () => {
 
 		it("should handle duplicate project_id + sha", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
-				const testCommit = createCommitData({ project_id: createdProject.id });
+				const testCommit = buildNewCommit({ project_id: project.id });
 				// 最初のコミットを作成
 				const _created = await commitsRepository.create(testCommit);
 
@@ -75,27 +68,23 @@ describe("Commits Repository", () => {
 	describe("bulkInsert", () => {
 		it("should insert multiple commits", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
-				const testCommits = createMultipleCommitsData(3, {
-					project_id: createdProject.id,
+				const testCommits = buildNewCommits(3, {
+					project_id: project.id,
 				});
 
-				const created = await commitsRepository.bulkInsert(testCommits);
+				const commits = await commitsRepository.bulkInsert(testCommits);
 
-				expect(created).toHaveLength(3);
-				expect(created[0].id).toBeDefined();
-				expect(created[1].id).toBeDefined();
-				expect(created[2].id).toBeDefined();
+				expect(commits).toHaveLength(3);
+				expect(commits[0].id).toBeDefined();
+				expect(commits[1].id).toBeDefined();
+				expect(commits[2].id).toBeDefined();
 
 				// 各コミットが正しく作成されていることを確認
-				for (const commit of created) {
-					expect(commit.project_id).toBe(createdProject.id);
+				for (const commit of commits) {
+					expect(commit.project_id).toBe(project.id);
 					expect(commit.sha).toBeDefined();
 					expect(commit.message).toBeDefined();
 				}
@@ -104,9 +93,8 @@ describe("Commits Repository", () => {
 
 		it("should handle empty array", async () => {
 			await withTransaction(async () => {
-				const commitsRepository = new CommitsRepository();
-				const created = await commitsRepository.bulkInsert([]);
-				expect(created).toHaveLength(0);
+				const commits = await commitsRepository.bulkInsert([]);
+				expect(commits).toHaveLength(0);
 			});
 		});
 	});
@@ -114,21 +102,17 @@ describe("Commits Repository", () => {
 	describe("upsertBySha", () => {
 		it("should create new commit when it doesn't exist", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
-				const testCommit = createCommitData({ project_id: createdProject.id });
+				const testCommit = buildNewCommit({ project_id: project.id });
 				const upserted = await commitsRepository.upsertBySha(
-					createdProject.id,
+					project.id,
 					testCommit,
 				);
 
 				expect(upserted).toBeDefined();
-				expect(upserted.project_id).toBe(createdProject.id);
+				expect(upserted.project_id).toBe(project.id);
 				expect(upserted.sha).toBe(testCommit.sha);
 				expect(upserted.message).toBe(testCommit.message);
 			});
@@ -136,30 +120,26 @@ describe("Commits Repository", () => {
 
 		it("should update existing commit when it exists", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
 				// 既存のコミットを作成
-				const testCommit = createCommitData({ project_id: createdProject.id });
-				const created = await commitsRepository.create(testCommit);
+				const testCommit = buildNewCommit({ project_id: project.id });
+				const commit = await commitsRepository.create(testCommit);
 
-				const updatedData: NewCommit = createCommitData({
-					project_id: createdProject.id,
+				const updatedData: NewCommit = buildNewCommit({
+					project_id: project.id,
 					sha: testCommit.sha,
 					message: "upsertで更新されたメッセージ",
 					author_name: "upsertで更新されたユーザー",
 				});
 
 				const upserted = await commitsRepository.upsertBySha(
-					createdProject.id,
+					project.id,
 					updatedData,
 				);
 
-				expect(upserted.id).toBe(created.id);
+				expect(upserted.id).toBe(commit.id);
 				expect(upserted.message).toBe(updatedData.message);
 				expect(upserted.author_name).toBe(updatedData.author_name);
 			});
@@ -167,8 +147,7 @@ describe("Commits Repository", () => {
 
 		it("should throw error when SHA is missing", async () => {
 			await withTransaction(async () => {
-				const commitsRepository = new CommitsRepository();
-				const validData = createCommitData();
+				const validData = buildNewCommit();
 				const invalidData = { ...validData };
 				// biome-ignore lint/suspicious/noExplicitAny: テスト用途での型回避のため必要
 				delete (invalidData as any).sha;
@@ -185,27 +164,20 @@ describe("Commits Repository", () => {
 	describe("findById", () => {
 		it("should find commit by internal ID", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
+				// テスト用プロジェクトとコミットを作成
+				const project = await createProject();
+				const commit = await createCommit({ project_id: project.id });
 
-				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
-
-				const testCommit = createCommitData({ project_id: createdProject.id });
-				const created = await commitsRepository.create(testCommit);
-
-				const found = await commitsRepository.findById(created.id);
+				const found = await commitsRepository.findById(commit.id);
 
 				expect(found).toBeDefined();
-				expect(found?.id).toBe(created.id);
-				expect(found?.sha).toBe(testCommit.sha);
+				expect(found?.id).toBe(commit.id);
+				expect(found?.sha).toBe(commit.sha);
 			});
 		});
 
 		it("should return null for non-existent ID", async () => {
 			await withTransaction(async () => {
-				const commitsRepository = new CommitsRepository();
 				const found = await commitsRepository.findById(999999);
 				expect(found).toBeNull();
 			});
@@ -215,30 +187,23 @@ describe("Commits Repository", () => {
 	describe("findBySha", () => {
 		it("should find commit by project ID and SHA", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
-				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
-
-				const testCommit = createCommitData({ project_id: createdProject.id });
-				const _created = await commitsRepository.create(testCommit);
+				// テスト用プロジェクトとコミットを作成
+				const project = await createProject();
+				const commit = await createCommit({ project_id: project.id });
 
 				const found = await commitsRepository.findBySha(
-					createdProject.id,
-					testCommit.sha,
+					commit.project_id,
+					commit.sha,
 				);
 
 				expect(found).toBeDefined();
-				expect(found?.project_id).toBe(createdProject.id);
-				expect(found?.sha).toBe(testCommit.sha);
+				expect(found?.project_id).toBe(commit.project_id);
+				expect(found?.sha).toBe(commit.sha);
 			});
 		});
 
 		it("should return null for non-existent project ID + SHA", async () => {
 			await withTransaction(async () => {
-				const commitsRepository = new CommitsRepository();
 				const found = await commitsRepository.findBySha(999999, "nonexistent");
 				expect(found).toBeNull();
 			});
@@ -248,21 +213,16 @@ describe("Commits Repository", () => {
 	describe("findByProject", () => {
 		it("should return commits for a project with pagination", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
 				// テストコミットを作成
-				const testCommits = createMultipleCommitsData(5, {
-					project_id: createdProject.id,
+				await createCommits(5, {
+					project_id: project.id,
 				});
-				await commitsRepository.bulkInsert(testCommits);
 
 				const commits = await commitsRepository.findByProject(
-					createdProject.id,
+					project.id,
 					10,
 					0,
 				);
@@ -281,24 +241,15 @@ describe("Commits Repository", () => {
 
 		it("should respect limit parameter", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
 				// テストコミットを作成
-				const testCommits = createMultipleCommitsData(5, {
-					project_id: createdProject.id,
+				await createCommits(5, {
+					project_id: project.id,
 				});
-				await commitsRepository.bulkInsert(testCommits);
 
-				const commits = await commitsRepository.findByProject(
-					createdProject.id,
-					2,
-					0,
-				);
+				const commits = await commitsRepository.findByProject(project.id, 2, 0);
 
 				expect(Array.isArray(commits)).toBe(true);
 				expect(commits.length).toBeLessThanOrEqual(2);
@@ -307,26 +258,21 @@ describe("Commits Repository", () => {
 
 		it("should respect offset parameter", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
 				// テストコミットを作成
-				const testCommits = createMultipleCommitsData(5, {
-					project_id: createdProject.id,
+				await createCommits(5, {
+					project_id: project.id,
 				});
-				await commitsRepository.bulkInsert(testCommits);
 
 				const firstPage = await commitsRepository.findByProject(
-					createdProject.id,
+					project.id,
 					2,
 					0,
 				);
 				const secondPage = await commitsRepository.findByProject(
-					createdProject.id,
+					project.id,
 					2,
 					2,
 				);
@@ -342,34 +288,29 @@ describe("Commits Repository", () => {
 	describe("findCommitsByAuthor", () => {
 		it("should return commits for a specific author", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
 				const authorEmail = "author@example.com";
 				const authorName = "テスト作者";
 
 				// 特定作者のコミットを作成
-				const authorCommits = createMultipleCommitsData(3, {
-					project_id: createdProject.id,
+				await createCommits(3, {
+					project_id: project.id,
 					author_email: authorEmail,
 					author_name: authorName,
 				});
-				await commitsRepository.bulkInsert(authorCommits);
 
 				// 別の作者のコミットも作成
-				const otherCommit = createCommitData({
-					project_id: createdProject.id,
+				const otherCommit = buildNewCommit({
+					project_id: project.id,
 					author_email: "other@example.com",
 					author_name: "別のユーザー",
 				});
 				await commitsRepository.create(otherCommit);
 
 				const commits = await commitsRepository.findCommitsByAuthor(
-					createdProject.id,
+					project.id,
 					authorEmail,
 					10,
 					0,
@@ -395,31 +336,26 @@ describe("Commits Repository", () => {
 
 		it("should respect limit and offset parameters", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
 				const authorEmail = "author@example.com";
 
 				// 特定作者のコミットを作成
-				const authorCommits = createMultipleCommitsData(5, {
-					project_id: createdProject.id,
+				await createCommits(5, {
+					project_id: project.id,
 					author_email: authorEmail,
 					author_name: "テスト作者",
 				});
-				await commitsRepository.bulkInsert(authorCommits);
 
 				const firstPage = await commitsRepository.findCommitsByAuthor(
-					createdProject.id,
+					project.id,
 					authorEmail,
 					2,
 					0,
 				);
 				const secondPage = await commitsRepository.findCommitsByAuthor(
-					createdProject.id,
+					project.id,
 					authorEmail,
 					2,
 					2,
@@ -439,26 +375,17 @@ describe("Commits Repository", () => {
 	describe("countByProject", () => {
 		it("should return total count of commits for a project", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
 				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
+				const project = await createProject();
 
-				const initialCount = await commitsRepository.countByProject(
-					createdProject.id,
-				);
+				const initialCount = await commitsRepository.countByProject(project.id);
 
 				// テストコミットを作成
-				const testCommits = createMultipleCommitsData(3, {
-					project_id: createdProject.id,
+				await createCommits(3, {
+					project_id: project.id,
 				});
-				await commitsRepository.bulkInsert(testCommits);
 
-				const newCount = await commitsRepository.countByProject(
-					createdProject.id,
-				);
+				const newCount = await commitsRepository.countByProject(project.id);
 				expect(newCount).toBe(initialCount + 3);
 			});
 		});
@@ -469,15 +396,9 @@ describe("Commits Repository", () => {
 	describe("update", () => {
 		it("should update existing commit", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
-
-				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
-
-				const testCommit = createCommitData({ project_id: createdProject.id });
-				const created = await commitsRepository.create(testCommit);
+				// テスト用プロジェクトとコミットを作成
+				const project = await createProject();
+				const commit = await createCommit({ project_id: project.id });
 
 				const updateData = {
 					message: "更新されたコミットメッセージ",
@@ -486,21 +407,20 @@ describe("Commits Repository", () => {
 					deletions: 10,
 				};
 
-				const updated = await commitsRepository.update(created.id, updateData);
+				const updated = await commitsRepository.update(commit.id, updateData);
 
 				expect(updated).toBeDefined();
-				expect(updated?.id).toBe(created.id);
+				expect(updated?.id).toBe(commit.id);
 				expect(updated?.message).toBe(updateData.message);
 				expect(updated?.author_name).toBe(updateData.author_name);
 				expect(updated?.additions).toBe(updateData.additions);
 				expect(updated?.deletions).toBe(updateData.deletions);
-				expect(updated?.sha).toBe(created.sha); // 変更されていない
+				expect(updated?.sha).toBe(commit.sha); // 変更されていない
 			});
 		});
 
 		it("should return null for non-existent commit", async () => {
 			await withTransaction(async () => {
-				const commitsRepository = new CommitsRepository();
 				const updated = await commitsRepository.update(999999, {
 					message: "test",
 				});
@@ -514,28 +434,21 @@ describe("Commits Repository", () => {
 	describe("delete", () => {
 		it("should delete existing commit", async () => {
 			await withTransaction(async () => {
-				const projectsRepository = new ProjectsRepository();
-				const commitsRepository = new CommitsRepository();
+				// テスト用プロジェクトとコミットを作成
+				const project = await createProject();
+				const commit = await createCommit({ project_id: project.id });
 
-				// テスト用プロジェクトを作成
-				const testProject = createProjectData();
-				const createdProject = await projectsRepository.create(testProject);
-
-				const testCommit = createCommitData({ project_id: createdProject.id });
-				const created = await commitsRepository.create(testCommit);
-
-				const deleted = await commitsRepository.delete(created.id);
+				const deleted = await commitsRepository.delete(commit.id);
 				expect(deleted).toBe(true);
 
 				// 削除されたことを確認
-				const found = await commitsRepository.findById(created.id);
+				const found = await commitsRepository.findById(commit.id);
 				expect(found).toBeNull();
 			});
 		});
 
 		it("should return false for non-existent commit", async () => {
 			await withTransaction(async () => {
-				const commitsRepository = new CommitsRepository();
 				const deleted = await commitsRepository.delete(999999);
 				expect(deleted).toBe(false);
 			});
