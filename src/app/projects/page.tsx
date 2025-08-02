@@ -1,4 +1,7 @@
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import { ProjectCard } from "@/components/projects/project-card";
+import { Button } from "@/components/ui/button";
 import { getProjects } from "./actions";
 
 export default async function ProjectsPage() {
@@ -7,10 +10,23 @@ export default async function ProjectsPage() {
 	return (
 		<div className="py-8 px-4 max-w-7xl mx-auto">
 			<header className="mb-8">
-				<h1 className="text-3xl font-bold mb-2">プロジェクト一覧</h1>
-				<p className="text-muted-foreground">
-					GitLabから取得したプロジェクトの一覧を表示しています
-				</p>
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-3xl font-bold mb-2">プロジェクト一覧</h1>
+						<p className="text-muted-foreground">
+							GitLabから取得したプロジェクトの一覧を表示しています
+						</p>
+					</div>
+					<Button asChild>
+						<Link
+							href="/projects/new"
+							className="inline-flex items-center gap-2"
+						>
+							<Plus className="h-4 w-4" />
+							新規プロジェクト登録
+						</Link>
+					</Button>
+				</div>
 			</header>
 
 			{projects.length === 0 ? (
