@@ -18,9 +18,9 @@ describe("Commits Repository", () => {
 
 	describe("create", () => {
 		it("should create a new commit", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -44,8 +44,8 @@ describe("Commits Repository", () => {
 		});
 
 		it("should throw error when creation fails", async () => {
-			await withTransaction(async (tx) => {
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const commitsRepository = new CommitsRepository();
 				// 無効なプロジェクトIDでコミット作成を試行
 				const invalidCommit = createCommitData({ project_id: 999999 });
 
@@ -54,9 +54,9 @@ describe("Commits Repository", () => {
 		});
 
 		it("should handle duplicate project_id + sha", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -74,9 +74,9 @@ describe("Commits Repository", () => {
 
 	describe("bulkInsert", () => {
 		it("should insert multiple commits", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -103,8 +103,8 @@ describe("Commits Repository", () => {
 		});
 
 		it("should handle empty array", async () => {
-			await withTransaction(async (tx) => {
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const commitsRepository = new CommitsRepository();
 				const created = await commitsRepository.bulkInsert([]);
 				expect(created).toHaveLength(0);
 			});
@@ -113,9 +113,9 @@ describe("Commits Repository", () => {
 
 	describe("upsertBySha", () => {
 		it("should create new commit when it doesn't exist", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -135,9 +135,9 @@ describe("Commits Repository", () => {
 		});
 
 		it("should update existing commit when it exists", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -166,8 +166,8 @@ describe("Commits Repository", () => {
 		});
 
 		it("should throw error when SHA is missing", async () => {
-			await withTransaction(async (tx) => {
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const commitsRepository = new CommitsRepository();
 				const validData = createCommitData();
 				const invalidData = { ...validData };
 				// biome-ignore lint/suspicious/noExplicitAny: テスト用途での型回避のため必要
@@ -184,9 +184,9 @@ describe("Commits Repository", () => {
 
 	describe("findById", () => {
 		it("should find commit by internal ID", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -204,8 +204,8 @@ describe("Commits Repository", () => {
 		});
 
 		it("should return null for non-existent ID", async () => {
-			await withTransaction(async (tx) => {
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const commitsRepository = new CommitsRepository();
 				const found = await commitsRepository.findById(999999);
 				expect(found).toBeNull();
 			});
@@ -214,9 +214,9 @@ describe("Commits Repository", () => {
 
 	describe("findBySha", () => {
 		it("should find commit by project ID and SHA", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -237,8 +237,8 @@ describe("Commits Repository", () => {
 		});
 
 		it("should return null for non-existent project ID + SHA", async () => {
-			await withTransaction(async (tx) => {
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const commitsRepository = new CommitsRepository();
 				const found = await commitsRepository.findBySha(999999, "nonexistent");
 				expect(found).toBeNull();
 			});
@@ -247,9 +247,9 @@ describe("Commits Repository", () => {
 
 	describe("findByProject", () => {
 		it("should return commits for a project with pagination", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -280,9 +280,9 @@ describe("Commits Repository", () => {
 		});
 
 		it("should respect limit parameter", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -306,9 +306,9 @@ describe("Commits Repository", () => {
 		});
 
 		it("should respect offset parameter", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -341,9 +341,9 @@ describe("Commits Repository", () => {
 
 	describe("findCommitsByAuthor", () => {
 		it("should return commits for a specific author", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -394,9 +394,9 @@ describe("Commits Repository", () => {
 		});
 
 		it("should respect limit and offset parameters", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -438,9 +438,9 @@ describe("Commits Repository", () => {
 
 	describe("countByProject", () => {
 		it("should return total count of commits for a project", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -468,9 +468,9 @@ describe("Commits Repository", () => {
 
 	describe("update", () => {
 		it("should update existing commit", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -499,8 +499,8 @@ describe("Commits Repository", () => {
 		});
 
 		it("should return null for non-existent commit", async () => {
-			await withTransaction(async (tx) => {
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const commitsRepository = new CommitsRepository();
 				const updated = await commitsRepository.update(999999, {
 					message: "test",
 				});
@@ -513,9 +513,9 @@ describe("Commits Repository", () => {
 
 	describe("delete", () => {
 		it("should delete existing commit", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const commitsRepository = new CommitsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -534,8 +534,8 @@ describe("Commits Repository", () => {
 		});
 
 		it("should return false for non-existent commit", async () => {
-			await withTransaction(async (tx) => {
-				const commitsRepository = new CommitsRepository(tx);
+			await withTransaction(async () => {
+				const commitsRepository = new CommitsRepository();
 				const deleted = await commitsRepository.delete(999999);
 				expect(deleted).toBe(false);
 			});

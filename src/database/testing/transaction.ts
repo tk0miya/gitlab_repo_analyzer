@@ -1,40 +1,35 @@
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import type * as schema from "@/database/schema/index";
-
-// トランザクション型のエイリアス
-type Transaction = Parameters<
-	Parameters<NodePgDatabase<typeof schema>["transaction"]>[0]
->[0];
+import { transaction } from "@/database/connection";
 
 /**
- * トランザクション内でコードを実行し、自動的にロールバックするユーティリティ関数
+ * テスト用の強制ロールバックエラー
+ * withTransaction内部でのみ使用される
+ */
+class TestTransactionRollbackError extends Error {
+	constructor() {
+		super("Test transaction rollback");
+		this.name = "TestTransactionRollbackError";
+	}
+}
+
+/**
+ * テスト用トランザクション内でコードを実行し、自動的にロールバックするユーティリティ関数
+ * 本番用のtransaction()を使用して、強制ロールバック機能を追加
  * テストや一時的な操作で使用する
  */
-export async function withTransaction<T>(
-	testFn: (tx: Transaction) => Promise<T>,
-): Promise<T> {
-	const { getDb } = await import("@/database/connection");
-	const db = await getDb();
-
-	let result: T | undefined;
-	let hasResult = false;
-
-	await db
-		.transaction(async (tx) => {
-			result = await testFn(tx as Transaction);
-			hasResult = true;
-			// トランザクションを強制的にロールバック
-			throw new Error("Transaction rollback");
-		})
-		.catch((error: Error) => {
-			// ロールバック用の例外は無視、それ以外は再スロー
-			if (error.message !== "Transaction rollback") {
-				throw error;
-			}
+export async function withTransaction(
+	testFn: () => Promise<void>,
+): Promise<void> {
+	try {
+		await transaction(async () => {
+			// testFnを実行
+			await testFn();
+			// テスト用：強制的にロールバックするためにエラーを投げる
+			throw new TestTransactionRollbackError();
 		});
-
-	if (!hasResult) {
-		throw new Error("Transaction did not complete successfully");
+	} catch (error) {
+		// ロールバック用の例外は無視、それ以外は再スロー
+		if (!(error instanceof TestTransactionRollbackError)) {
+			throw error;
+		}
 	}
-	return result as T;
 }

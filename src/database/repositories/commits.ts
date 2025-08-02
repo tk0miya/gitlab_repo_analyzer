@@ -1,16 +1,16 @@
 import { and, count, desc, eq } from "drizzle-orm";
+import { getDb } from "@/database/connection";
 import {
 	type Commit,
 	commits,
 	type NewCommit,
 } from "@/database/schema/commits";
-import { BaseRepository } from "./base";
 
 /**
  * コミット操作のリポジトリクラス
  * commitsテーブルに対するCRUD操作を提供
  */
-export class CommitsRepository extends BaseRepository {
+export class CommitsRepository {
 	// ==================== CREATE操作 ====================
 
 	/**
@@ -19,7 +19,7 @@ export class CommitsRepository extends BaseRepository {
 	 * @returns 作成されたコミット
 	 */
 	async create(commitData: NewCommit): Promise<Commit> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [created] = await db.insert(commits).values(commitData).returning();
 		if (!created) {
 			throw new Error("コミットの作成に失敗しました");
@@ -37,7 +37,7 @@ export class CommitsRepository extends BaseRepository {
 			return [];
 		}
 
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const created = await db.insert(commits).values(commitsData).returning();
 		return created;
 	}
@@ -73,7 +73,7 @@ export class CommitsRepository extends BaseRepository {
 	 * @returns コミット情報（見つからない場合はnull）
 	 */
 	async findById(id: number): Promise<Commit | null> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [commit] = await db.select().from(commits).where(eq(commits.id, id));
 		return commit || null;
 	}
@@ -85,7 +85,7 @@ export class CommitsRepository extends BaseRepository {
 	 * @returns コミット情報（見つからない場合はnull）
 	 */
 	async findBySha(projectId: number, sha: string): Promise<Commit | null> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [commit] = await db
 			.select()
 			.from(commits)
@@ -105,7 +105,7 @@ export class CommitsRepository extends BaseRepository {
 		limit: number = 100,
 		offset: number = 0,
 	): Promise<Commit[]> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		return await db
 			.select()
 			.from(commits)
@@ -129,7 +129,7 @@ export class CommitsRepository extends BaseRepository {
 		limit: number = 100,
 		offset: number = 0,
 	): Promise<Commit[]> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		return await db
 			.select()
 			.from(commits)
@@ -150,7 +150,7 @@ export class CommitsRepository extends BaseRepository {
 	 * @returns コミット総数
 	 */
 	async countByProject(projectId: number): Promise<number> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [result] = await db
 			.select({ count: count() })
 			.from(commits)
@@ -170,7 +170,7 @@ export class CommitsRepository extends BaseRepository {
 		id: number,
 		updateData: Partial<NewCommit>,
 	): Promise<Commit | null> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [updated] = await db
 			.update(commits)
 			.set(updateData)
@@ -187,7 +187,7 @@ export class CommitsRepository extends BaseRepository {
 	 * @returns 削除成功の場合true
 	 */
 	async delete(id: number): Promise<boolean> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [deleted] = await db
 			.delete(commits)
 			.where(eq(commits.id, id))

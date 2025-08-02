@@ -12,8 +12,8 @@ describe("Projects Repository", () => {
 
 	describe("create", () => {
 		it("should create a new project", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const testProject = createProjectData();
 				const created = await projectsRepository.create(testProject);
 
@@ -33,8 +33,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should throw error when creation fails", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				// 必須フィールドが欠如したデータで失敗をテスト
 				const validData = createProjectData();
 				const invalidProject = { ...validData };
@@ -48,8 +48,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should handle duplicate GitLab ID", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const testProject = createProjectData();
 				// 最初のプロジェクトを作成
 				const _created = await projectsRepository.create(testProject);
@@ -62,8 +62,8 @@ describe("Projects Repository", () => {
 
 	describe("findById", () => {
 		it("should find project by internal ID", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const testProject = createProjectData();
 				// テストデータを作成
 				const created = await projectsRepository.create(testProject);
@@ -77,8 +77,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should return null for non-existent ID", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const found = await projectsRepository.findById(999999);
 				expect(found).toBeNull();
 			});
@@ -87,8 +87,8 @@ describe("Projects Repository", () => {
 
 	describe("findByGitlabId", () => {
 		it("should find project by GitLab ID", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const testProject = createProjectData();
 				// テストデータを作成
 				const _created = await projectsRepository.create(testProject);
@@ -104,8 +104,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should return null for non-existent GitLab ID", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const found = await projectsRepository.findByGitlabId(999999);
 				expect(found).toBeNull();
 			});
@@ -114,8 +114,8 @@ describe("Projects Repository", () => {
 
 	describe("findAll", () => {
 		it("should return all projects with pagination", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				// テストデータを作成
 				const testProject1 = createProjectData();
 				const testProject2 = createProjectData();
@@ -135,8 +135,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should respect limit parameter", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const projects = await projectsRepository.findAll(1, 0);
 
 				expect(Array.isArray(projects)).toBe(true);
@@ -145,8 +145,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should respect offset parameter", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				// テストデータを作成
 				const testProject1 = createProjectData();
 				const testProject2 = createProjectData();
@@ -166,8 +166,8 @@ describe("Projects Repository", () => {
 
 	describe("count", () => {
 		it("should return total count of projects", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const initialCount = await projectsRepository.count();
 
 				// テストデータを作成
@@ -182,8 +182,8 @@ describe("Projects Repository", () => {
 
 	describe("update", () => {
 		it("should update existing project", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				// テストデータを作成
 				const testProject = createProjectData();
 				const created = await projectsRepository.create(testProject);
@@ -204,8 +204,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should return null for non-existent project", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const updated = await projectsRepository.update(999999, {
 					name: "test",
 				});
@@ -216,8 +216,8 @@ describe("Projects Repository", () => {
 
 	describe("delete", () => {
 		it("should delete existing project", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				// テストデータを作成
 				const testProject = createProjectData();
 				const created = await projectsRepository.create(testProject);
@@ -232,8 +232,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should return false for non-existent project", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const deleted = await projectsRepository.delete(999999);
 				expect(deleted).toBe(false);
 			});
@@ -242,8 +242,8 @@ describe("Projects Repository", () => {
 
 	describe("upsert", () => {
 		it("should create new project when it doesn't exist", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const testProject = createProjectData();
 				const upserted = await projectsRepository.upsert(testProject);
 
@@ -254,8 +254,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should update existing project when it exists", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				// 既存のプロジェクトを作成
 				const testProject = createProjectData();
 				const created = await projectsRepository.create(testProject);
@@ -275,8 +275,8 @@ describe("Projects Repository", () => {
 		});
 
 		it("should throw error when GitLab ID is missing", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
 				const validData = createProjectData();
 				const invalidData = { ...validData };
 				// biome-ignore lint/suspicious/noExplicitAny: テスト用途での型回避のため必要
