@@ -20,7 +20,7 @@ services:
       - DB_USERNAME=analyzer_user
       - DB_PASSWORD=dev_password
       - DB_SSL=false
-      - GITLAB_TOKEN=glpat-xxxxxxxxxxxxxxxxxxxx
+      - GITLAB_TOKEN=${GITLAB_TOKEN:-glpat-xxxxxxxxxxxxxxxxxxxx}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-ghp_xxxxxxxxxxxxxxxxxxxx}
     depends_on:
       postgres:
