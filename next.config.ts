@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	experimental: {
+		serverActions: {
+			bodySizeLimit: "2mb",
+		},
+	},
 	eslint: {
 		// Use Biome instead of ESLint
 		ignoreDuringBuilds: true,
