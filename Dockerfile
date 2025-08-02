@@ -38,7 +38,7 @@ ENV LC_ALL=ja_JP.UTF-8
 WORKDIR /app
 
 # Git credential helper設定（環境変数からGitHubトークンを使用）
-RUN git config --global credential.helper '!f() { echo "username=token"; echo "password=$GITHUB_TOKEN"; }; f'
+RUN git config --system credential.helper '!f() { echo "username=token"; echo "password=$GITHUB_TOKEN"; }; f'
 
 # アプリケーションポートを公開
 EXPOSE 8080
