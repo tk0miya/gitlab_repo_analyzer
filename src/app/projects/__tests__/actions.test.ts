@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { closeConnection } from "@/database/connection";
 import { ProjectsRepository } from "@/database/repositories/projects";
 import { createProjectData } from "@/database/testing/factories";
@@ -8,6 +8,11 @@ import { getProjects } from "../actions";
 describe("getProjects Server Action", () => {
 	afterAll(async () => {
 		await closeConnection();
+	});
+
+	afterEach(() => {
+		// すべてのモックを自動復元
+		vi.restoreAllMocks();
 	});
 
 	it("プロジェクト一覧を正常に取得できる", async () => {
@@ -35,20 +40,17 @@ describe("getProjects Server Action", () => {
 	});
 
 	it("データベースエラー時に適切なエラーを投げる", async () => {
-		// ProjectsRepositoryのfindAllメソッドをモックしてエラーを発生させる
-		const originalFindAll = ProjectsRepository.prototype.findAll;
-		ProjectsRepository.prototype.findAll = vi
-			.fn()
+		// spyOnを使用してfindAllメソッドをモック
+		const findAllSpy = vi
+			.spyOn(ProjectsRepository.prototype, "findAll")
 			.mockRejectedValue(new Error("Database connection failed"));
 
-		try {
-			// エラーが適切に投げられることを確認
-			await expect(getProjects()).rejects.toThrow(
-				"プロジェクト一覧の取得に失敗しました",
-			);
-		} finally {
-			// モックを元に戻す
-			ProjectsRepository.prototype.findAll = originalFindAll;
-		}
+		// エラーが適切に投げられることを確認
+		await expect(getProjects()).rejects.toThrow(
+			"プロジェクト一覧の取得に失敗しました",
+		);
+
+		// メソッドが呼び出されたことを確認
+		expect(findAllSpy).toHaveBeenCalledOnce();
 	});
 });
