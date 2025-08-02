@@ -21,9 +21,9 @@ describe("Sync Logs Repository", () => {
 
 	describe("create", () => {
 		it("should create a new sync log", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -53,9 +53,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should create sync log for commits type", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -76,8 +76,8 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should throw error when project does not exist", async () => {
-			await withTransaction(async (tx) => {
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const syncLogsRepository = new SyncLogsRepository();
 
 				const syncLogData = createSyncLogData({
 					project_id: 999999, // 存在しないプロジェクトID
@@ -94,9 +94,9 @@ describe("Sync Logs Repository", () => {
 
 	describe("findById", () => {
 		it("should find sync log by ID", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -119,8 +119,8 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should return null for non-existent ID", async () => {
-			await withTransaction(async (tx) => {
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const syncLogsRepository = new SyncLogsRepository();
 				const found = await syncLogsRepository.findById(999999);
 				expect(found).toBeNull();
 			});
@@ -129,9 +129,9 @@ describe("Sync Logs Repository", () => {
 
 	describe("find", () => {
 		it("should return all sync logs when no filters are provided", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -160,9 +160,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should filter by project_id", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// 2つのテスト用プロジェクトを作成
 				const testProject1 = createProjectData();
@@ -196,9 +196,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should filter by sync_type", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -240,9 +240,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should filter by status", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -273,9 +273,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should respect limit and offset parameters", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -315,9 +315,9 @@ describe("Sync Logs Repository", () => {
 
 	describe("findByProject", () => {
 		it("should return sync logs for a specific project", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -342,9 +342,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should respect limit and offset parameters", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -373,9 +373,9 @@ describe("Sync Logs Repository", () => {
 
 	describe("findLatest", () => {
 		it("should return the most recent sync log for a project", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -403,9 +403,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should filter by sync_type when provided", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -443,9 +443,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should return null when no sync logs exist", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成（同期ログは作成しない）
 				const testProject = createProjectData();
@@ -460,9 +460,9 @@ describe("Sync Logs Repository", () => {
 
 	describe("count", () => {
 		it("should return total count of sync logs", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -484,9 +484,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should filter count by project_id", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// 2つのテスト用プロジェクトを作成
 				const testProject1 = createProjectData();
@@ -527,9 +527,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should filter count by sync_type", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -557,9 +557,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should filter count by status", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -590,9 +590,9 @@ describe("Sync Logs Repository", () => {
 
 	describe("update", () => {
 		it("should update existing sync log", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -625,8 +625,8 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should return null for non-existent sync log", async () => {
-			await withTransaction(async (tx) => {
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const syncLogsRepository = new SyncLogsRepository();
 				const updated = await syncLogsRepository.update(999999, {
 					status: SYNC_STATUSES.COMPLETED,
 				});
@@ -637,9 +637,9 @@ describe("Sync Logs Repository", () => {
 
 	describe("completeSync", () => {
 		it("should complete sync with processing statistics", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -673,9 +673,9 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should complete sync with default parameters", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -699,8 +699,8 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should return null for non-existent sync log", async () => {
-			await withTransaction(async (tx) => {
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const syncLogsRepository = new SyncLogsRepository();
 				const completed = await syncLogsRepository.completeSync(999999);
 				expect(completed).toBeNull();
 			});
@@ -709,9 +709,9 @@ describe("Sync Logs Repository", () => {
 
 	describe("failSync", () => {
 		it("should fail sync with error message", async () => {
-			await withTransaction(async (tx) => {
-				const projectsRepository = new ProjectsRepository(tx);
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const projectsRepository = new ProjectsRepository();
+				const syncLogsRepository = new SyncLogsRepository();
 
 				// テスト用プロジェクトを作成
 				const testProject = createProjectData();
@@ -742,8 +742,8 @@ describe("Sync Logs Repository", () => {
 		});
 
 		it("should return null for non-existent sync log", async () => {
-			await withTransaction(async (tx) => {
-				const syncLogsRepository = new SyncLogsRepository(tx);
+			await withTransaction(async () => {
+				const syncLogsRepository = new SyncLogsRepository();
 				const failParams = {
 					error_message: "テスト用エラーメッセージ",
 				};

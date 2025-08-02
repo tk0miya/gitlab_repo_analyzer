@@ -1,4 +1,5 @@
 import { and, count, desc, eq } from "drizzle-orm";
+import { getDb } from "@/database/connection";
 import type {
 	CompleteSyncParams,
 	FailSyncParams,
@@ -11,13 +12,12 @@ import {
 	type SyncType,
 	syncLogs,
 } from "@/database/schema/sync-logs";
-import { BaseRepository } from "./base";
 
 /**
  * 同期ログ操作のリポジトリクラス
  * 同期履歴テーブルに対するCRUD操作と同期状態管理を提供
  */
-export class SyncLogsRepository extends BaseRepository {
+export class SyncLogsRepository {
 	// ==================== CREATE操作 ====================
 
 	/**
@@ -32,7 +32,7 @@ export class SyncLogsRepository extends BaseRepository {
 			status: syncLogData.status ?? SYNC_STATUSES.RUNNING,
 		};
 
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [created] = await db
 			.insert(syncLogs)
 			.values(dataWithDefaults)
@@ -52,7 +52,7 @@ export class SyncLogsRepository extends BaseRepository {
 	 * @returns 同期ログ情報（見つからない場合はnull）
 	 */
 	async findById(id: number): Promise<SyncLog | null> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [log] = await db.select().from(syncLogs).where(eq(syncLogs.id, id));
 		return log || null;
 	}
@@ -63,7 +63,7 @@ export class SyncLogsRepository extends BaseRepository {
 	 * @returns 同期ログ配列（開始日時降順でソート）
 	 */
 	async find(params: FindSyncLogsParams = {}): Promise<SyncLog[]> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const { project_id, sync_type, status, limit = 100, offset = 0 } = params;
 
 		// 条件を構築
@@ -139,7 +139,7 @@ export class SyncLogsRepository extends BaseRepository {
 	async count(
 		params: Omit<FindSyncLogsParams, "limit" | "offset"> = {},
 	): Promise<number> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const { project_id, sync_type, status } = params;
 
 		// 条件を構築
@@ -180,7 +180,7 @@ export class SyncLogsRepository extends BaseRepository {
 		id: number,
 		updateData: Partial<NewSyncLog>,
 	): Promise<SyncLog | null> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [updated] = await db
 			.update(syncLogs)
 			.set(updateData)

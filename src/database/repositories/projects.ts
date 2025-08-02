@@ -1,23 +1,23 @@
 import { asc, count, eq } from "drizzle-orm";
+import { getDb } from "@/database/connection";
 import {
 	type NewProject,
 	type Project,
 	projects,
 } from "@/database/schema/projects";
-import { BaseRepository } from "./base";
 
 /**
  * プロジェクト操作のリポジトリクラス
  * プロジェクトテーブルに対するCRUD操作を提供
  */
-export class ProjectsRepository extends BaseRepository {
+export class ProjectsRepository {
 	/**
 	 * プロジェクトを作成
 	 * @param projectData 新規プロジェクトデータ
 	 * @returns 作成されたプロジェクト
 	 */
 	async create(projectData: NewProject): Promise<Project> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [created] = await db.insert(projects).values(projectData).returning();
 		if (!created) {
 			throw new Error("プロジェクトの作成に失敗しました");
@@ -31,7 +31,7 @@ export class ProjectsRepository extends BaseRepository {
 	 * @returns プロジェクト情報（見つからない場合はnull）
 	 */
 	async findById(id: number): Promise<Project | null> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [project] = await db
 			.select()
 			.from(projects)
@@ -45,7 +45,7 @@ export class ProjectsRepository extends BaseRepository {
 	 * @returns プロジェクト情報（見つからない場合はnull）
 	 */
 	async findByGitlabId(gitlabId: number): Promise<Project | null> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [project] = await db
 			.select()
 			.from(projects)
@@ -60,7 +60,7 @@ export class ProjectsRepository extends BaseRepository {
 	 * @returns プロジェクト配列（name昇順でソート）
 	 */
 	async findAll(limit: number = 100, offset: number = 0): Promise<Project[]> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		return await db
 			.select()
 			.from(projects)
@@ -74,7 +74,7 @@ export class ProjectsRepository extends BaseRepository {
 	 * @returns プロジェクト総数
 	 */
 	async count(): Promise<number> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [result] = await db.select({ count: count() }).from(projects);
 		return Number(result?.count || 0);
 	}
@@ -89,7 +89,7 @@ export class ProjectsRepository extends BaseRepository {
 		id: number,
 		updateData: Partial<NewProject>,
 	): Promise<Project | null> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [updated] = await db
 			.update(projects)
 			.set(updateData)
@@ -104,7 +104,7 @@ export class ProjectsRepository extends BaseRepository {
 	 * @returns 削除成功の場合true
 	 */
 	async delete(id: number): Promise<boolean> {
-		const db = await this.getDatabase();
+		const db = await getDb();
 		const [deleted] = await db
 			.delete(projects)
 			.where(eq(projects.id, id))
