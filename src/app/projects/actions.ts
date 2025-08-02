@@ -97,9 +97,12 @@ export async function registerProject(
 		// 成功時は一覧ページにリダイレクト
 		redirect("/projects");
 	} catch (error) {
-		console.error("プロジェクト登録エラー:", error);
+		// リダイレクトエラーは再スロー（ログ出力なし）
+		if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+			throw error;
+		}
 
-		// Zodバリデーションエラー
+		// Zodバリデーションエラー（ログ出力なし）
 		if (error instanceof z.ZodError) {
 			return {
 				success: false,
@@ -107,10 +110,8 @@ export async function registerProject(
 			};
 		}
 
-		// リダイレクトエラーは再スロー
-		if (error instanceof Error && error.message === "NEXT_REDIRECT") {
-			throw error;
-		}
+		// その他の実際のエラーのみログ出力
+		console.error("プロジェクト登録エラー:", error);
 
 		// その他のエラー
 		return {
