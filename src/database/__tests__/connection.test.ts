@@ -99,7 +99,6 @@ describe("connection.ts", () => {
 
 			try {
 				await transaction(async () => {
-					const repo = new ProjectsRepository();
 					await createProject({
 						name: "Will be rolled back",
 						gitlab_id: 11001,
@@ -167,7 +166,6 @@ describe("connection.ts", () => {
 
 			try {
 				await transaction(async () => {
-					const repo = new ProjectsRepository();
 					await createProject({
 						name: "Outer Before Error",
 						gitlab_id: 12004,
