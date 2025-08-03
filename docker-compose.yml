@@ -13,6 +13,8 @@ services:
       - ~/.claude.json:/root/.claude.json
       # Git設定（読み取り専用）
       - ~/.gitconfig:/root/.gitconfig:ro
+      # シェル履歴永続化
+      - shell_history:/shell_history
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -54,3 +56,5 @@ volumes:
   postgres_data:
   # node_modules高速化
   node_modules_volume:
+  # シェル履歴永続化
+  shell_history:
