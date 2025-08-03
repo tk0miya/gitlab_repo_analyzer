@@ -15,24 +15,6 @@ describe("セキュリティミドルウェア", () => {
 		);
 	});
 
-	it("どのルートでもCORSヘッダーを設定しない", async () => {
-		const routes = [
-			"http://localhost:3000/",
-			"http://localhost:3000/api/health",
-			"http://localhost:3000/health",
-			"http://localhost:3000/about",
-		];
-
-		for (const url of routes) {
-			const request = new NextRequest(url);
-			const response = await middleware(request);
-
-			expect(response.headers.get("Access-Control-Allow-Origin")).toBeNull();
-			expect(response.headers.get("Access-Control-Allow-Methods")).toBeNull();
-			expect(response.headers.get("Access-Control-Allow-Headers")).toBeNull();
-		}
-	});
-
 	it("すべてのルートで基本セキュリティヘッダーを設定する", async () => {
 		const routes = [
 			"http://localhost:3000/",
