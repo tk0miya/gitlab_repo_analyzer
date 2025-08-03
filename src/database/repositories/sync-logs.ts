@@ -147,25 +147,4 @@ export class SyncLogsRepository {
 
 		return Number(result?.count || 0);
 	}
-
-	// ==================== UPDATE操作 ====================
-
-	/**
-	 * 同期ログを更新
-	 * @param id 同期ログID
-	 * @param updateData 更新データ
-	 * @returns 更新された同期ログ（見つからない場合はnull）
-	 */
-	async update(
-		id: number,
-		updateData: Partial<NewSyncLog>,
-	): Promise<SyncLog | null> {
-		const db = await getDb();
-		const [updated] = await db
-			.update(syncLogs)
-			.set(updateData)
-			.where(eq(syncLogs.id, id))
-			.returning();
-		return updated || null;
-	}
 }

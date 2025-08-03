@@ -407,40 +407,4 @@ describe("Sync Logs Repository", () => {
 			});
 		});
 	});
-
-	// ==================== UPDATE操作 ====================
-
-	describe("update", () => {
-		it("should update existing sync log", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトと同期ログを作成
-				const project = await createProject();
-				const syncLog = await createSyncLog({ project_id: project.id });
-
-				const updateData = {
-					records_processed: 150,
-					records_added: 75,
-					last_item_date: new Date(),
-				};
-
-				const updated = await syncLogsRepository.update(syncLog.id, updateData);
-
-				expect(updated).toBeDefined();
-				expect(updated?.id).toBe(syncLog.id);
-				expect(updated?.records_processed).toBe(updateData.records_processed);
-				expect(updated?.records_added).toBe(updateData.records_added);
-				expect(updated?.last_item_date).toEqual(updateData.last_item_date);
-				expect(updated?.project_id).toBe(syncLog.project_id); // 変更されていない
-			});
-		});
-
-		it("should return null for non-existent sync log", async () => {
-			await withTransaction(async () => {
-				const updated = await syncLogsRepository.update(999999, {
-					records_processed: 100,
-				});
-				expect(updated).toBeNull();
-			});
-		});
-	});
 });
