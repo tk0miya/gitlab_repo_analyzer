@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { GitLabApiClient } from "@/api/gitlab-client";
@@ -160,6 +161,11 @@ export async function deleteProject(
 
 		// プロジェクトを削除（冪等性を保証）
 		await projectsRepository.delete(id);
+
+		// プロジェクト一覧ページのキャッシュを無効化（テスト環境では無効化）
+		if (process.env.NODE_ENV !== "test") {
+			revalidatePath("/projects");
+		}
 
 		return {
 			success: true,

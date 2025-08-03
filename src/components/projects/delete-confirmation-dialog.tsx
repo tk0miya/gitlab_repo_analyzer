@@ -1,7 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
 	deleteProject,
 	type ProjectDeletionResult,
@@ -27,18 +27,24 @@ export function DeleteConfirmationDialog({
 	project,
 	onDeleteSuccess,
 }: DeleteConfirmationDialogProps) {
+	const [open, setOpen] = useState(false);
 	const [state, action, pending] = useActionState<
 		ProjectDeletionResult | null,
 		FormData
 	>(deleteProject, null);
 
 	// 削除成功時の処理
-	if (state?.success && onDeleteSuccess) {
-		onDeleteSuccess();
-	}
+	useEffect(() => {
+		if (state?.success) {
+			setOpen(false);
+			if (onDeleteSuccess) {
+				onDeleteSuccess();
+			}
+		}
+	}, [state?.success, onDeleteSuccess]);
 
 	return (
-		<Dialog>
+		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<Button
 					variant="destructive"
@@ -83,11 +89,13 @@ export function DeleteConfirmationDialog({
 				)}
 
 				<DialogFooter className="gap-2">
-					<DialogTrigger asChild>
-						<Button variant="outline" disabled={pending}>
-							キャンセル
-						</Button>
-					</DialogTrigger>
+					<Button
+						variant="outline"
+						disabled={pending}
+						onClick={() => setOpen(false)}
+					>
+						キャンセル
+					</Button>
 					<form action={action}>
 						<input type="hidden" name="projectId" value={project.id} />
 						<Button
