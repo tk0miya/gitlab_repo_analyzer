@@ -1,11 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection } from "@/database/connection";
 import { syncLogsRepository } from "@/database/repositories";
-import {
-	SYNC_STATUSES,
-	SYNC_TYPES,
-	type SyncLog,
-} from "@/database/schema/sync-logs";
+import { SYNC_TYPES, type SyncLog } from "@/database/schema/sync-logs";
 import {
 	buildNewSyncLog,
 	createProject,
@@ -30,8 +26,9 @@ describe("Sync Logs Repository", () => {
 				const syncLogData = buildNewSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.PROJECTS,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const syncLog = await syncLogsRepository.create(syncLogData);
@@ -40,12 +37,10 @@ describe("Sync Logs Repository", () => {
 				expect(syncLog.id).toBeDefined();
 				expect(syncLog.project_id).toBe(project.id);
 				expect(syncLog.sync_type).toBe(SYNC_TYPES.PROJECTS);
-				expect(syncLog.status).toBe(SYNC_STATUSES.RUNNING);
-				expect(syncLog.started_at).toBeDefined();
-				expect(syncLog.completed_at).toBeNull();
-				expect(syncLog.records_processed).toBeNull();
-				expect(syncLog.records_added).toBeNull();
-				expect(syncLog.error_message).toBeNull();
+				expect(syncLog.completed_at).toBeDefined();
+				expect(syncLog.records_processed).toBe(10);
+				expect(syncLog.records_added).toBe(5);
+				expect(syncLog.last_commit_date).toBeDefined();
 				expect(syncLog.created_at).toBeDefined();
 			});
 		});
@@ -58,14 +53,14 @@ describe("Sync Logs Repository", () => {
 				const syncLogData = buildNewSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.COMMITS,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const syncLog = await syncLogsRepository.create(syncLogData);
 
 				expect(syncLog.sync_type).toBe(SYNC_TYPES.COMMITS);
-				expect(syncLog.status).toBe(SYNC_STATUSES.RUNNING);
 			});
 		});
 
@@ -73,8 +68,9 @@ describe("Sync Logs Repository", () => {
 			await withTransaction(async () => {
 				const syncLogData = buildNewSyncLog({
 					project_id: 999999, // 存在しないプロジェクトID
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				await expect(syncLogsRepository.create(syncLogData)).rejects.toThrow();
@@ -117,8 +113,9 @@ describe("Sync Logs Repository", () => {
 				// 複数の同期ログを作成
 				await createSyncLogs(3, {
 					project_id: project.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const logs = await syncLogsRepository.find();
@@ -126,9 +123,9 @@ describe("Sync Logs Repository", () => {
 				expect(Array.isArray(logs)).toBe(true);
 				expect(logs.length).toBeGreaterThanOrEqual(3);
 
-				// started_at降順でソートされているかチェック
+				// completed_at降順でソートされているかチェック
 				for (let i = 1; i < logs.length; i++) {
-					expect(logs[i].started_at <= logs[i - 1].started_at).toBe(true);
+					expect(logs[i].completed_at <= logs[i - 1].completed_at).toBe(true);
 				}
 			});
 		});
@@ -142,13 +139,15 @@ describe("Sync Logs Repository", () => {
 				// 各プロジェクトで同期ログを作成
 				await createSyncLog({
 					project_id: project1.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 				await createSyncLog({
 					project_id: project2.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const logs = await syncLogsRepository.find({
@@ -171,14 +170,16 @@ describe("Sync Logs Repository", () => {
 				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.PROJECTS,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.COMMITS,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const projectsLogs = await syncLogsRepository.find({
@@ -200,34 +201,6 @@ describe("Sync Logs Repository", () => {
 			});
 		});
 
-		it("should filter by status", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトを作成
-				const project = await createProject();
-
-				// 同期ログを作成して完了させる
-				const started = await createSyncLog({
-					project_id: project.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
-				});
-				const completeParams = {
-					records_processed: 100,
-					records_added: 50,
-				};
-				await syncLogsRepository.completeSync(started.id, completeParams);
-
-				const completedLogs = await syncLogsRepository.find({
-					status: SYNC_STATUSES.COMPLETED,
-				});
-
-				expect(completedLogs.length).toBeGreaterThanOrEqual(1);
-				for (const log of completedLogs) {
-					expect(log.status).toBe(SYNC_STATUSES.COMPLETED);
-				}
-			});
-		});
-
 		it("should respect limit and offset parameters", async () => {
 			await withTransaction(async () => {
 				// テスト用プロジェクトを作成
@@ -236,8 +209,9 @@ describe("Sync Logs Repository", () => {
 				// 複数の同期ログを作成
 				await createSyncLogs(5, {
 					project_id: project.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const firstPage = await syncLogsRepository.find({
@@ -271,8 +245,9 @@ describe("Sync Logs Repository", () => {
 				// 同期ログを作成
 				await createSyncLog({
 					project_id: project.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const logs = await syncLogsRepository.findByProject(project.id);
@@ -293,8 +268,9 @@ describe("Sync Logs Repository", () => {
 				// 複数の同期ログを作成
 				await createSyncLogs(5, {
 					project_id: project.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const limitedLogs = await syncLogsRepository.findByProject(
@@ -320,8 +296,9 @@ describe("Sync Logs Repository", () => {
 				for (let i = 0; i < 3; i++) {
 					lastStarted = await createSyncLog({
 						project_id: project.id,
-						status: SYNC_STATUSES.RUNNING,
-						started_at: new Date(baseTime.getTime() + i * 1000), // 1秒ずつずらす
+						completed_at: new Date(baseTime.getTime() + i * 1000), // 1秒ずつずらす
+						records_processed: 10,
+						records_added: 5,
 					});
 				}
 
@@ -343,14 +320,16 @@ describe("Sync Logs Repository", () => {
 				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.PROJECTS,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: baseTime,
+					completed_at: baseTime,
+					records_processed: 10,
+					records_added: 5,
 				});
 				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.COMMITS,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(baseTime.getTime() + 1000), // 1秒後
+					completed_at: new Date(baseTime.getTime() + 1000), // 1秒後
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const latestProjects = await syncLogsRepository.findLatest(
@@ -390,8 +369,9 @@ describe("Sync Logs Repository", () => {
 				// 同期ログを作成
 				await createSyncLog({
 					project_id: project.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const newCount = await syncLogsRepository.count();
@@ -412,15 +392,17 @@ describe("Sync Logs Repository", () => {
 				// プロジェクト1の同期ログを作成
 				await createSyncLog({
 					project_id: project1.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				// プロジェクト2の同期ログを作成
 				await createSyncLog({
 					project_id: project2.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const newCount1 = await syncLogsRepository.count({
@@ -448,8 +430,9 @@ describe("Sync Logs Repository", () => {
 				await createSyncLog({
 					project_id: project.id,
 					sync_type: SYNC_TYPES.PROJECTS,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
+					completed_at: new Date(),
+					records_processed: 10,
+					records_added: 5,
 				});
 
 				const newProjectsCount = await syncLogsRepository.count({
@@ -457,30 +440,6 @@ describe("Sync Logs Repository", () => {
 				});
 
 				expect(newProjectsCount).toBe(initialProjectsCount + 1);
-			});
-		});
-
-		it("should filter count by status", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトを作成
-				const project = await createProject();
-
-				const initialRunningCount = await syncLogsRepository.count({
-					status: SYNC_STATUSES.RUNNING,
-				});
-
-				// running状態の同期ログを作成
-				await createSyncLog({
-					project_id: project.id,
-					status: SYNC_STATUSES.RUNNING,
-					started_at: new Date(),
-				});
-
-				const newRunningCount = await syncLogsRepository.count({
-					status: SYNC_STATUSES.RUNNING,
-				});
-
-				expect(newRunningCount).toBe(initialRunningCount + 1);
 			});
 		});
 	});
@@ -495,20 +454,18 @@ describe("Sync Logs Repository", () => {
 				const syncLog = await createSyncLog({ project_id: project.id });
 
 				const updateData = {
-					status: SYNC_STATUSES.COMPLETED,
-					completed_at: new Date(),
 					records_processed: 150,
 					records_added: 75,
+					last_commit_date: new Date(),
 				};
 
 				const updated = await syncLogsRepository.update(syncLog.id, updateData);
 
 				expect(updated).toBeDefined();
 				expect(updated?.id).toBe(syncLog.id);
-				expect(updated?.status).toBe(SYNC_STATUSES.COMPLETED);
-				expect(updated?.completed_at).toEqual(updateData.completed_at);
 				expect(updated?.records_processed).toBe(updateData.records_processed);
 				expect(updated?.records_added).toBe(updateData.records_added);
+				expect(updated?.last_commit_date).toEqual(updateData.last_commit_date);
 				expect(updated?.project_id).toBe(syncLog.project_id); // 変更されていない
 			});
 		});
@@ -516,95 +473,9 @@ describe("Sync Logs Repository", () => {
 		it("should return null for non-existent sync log", async () => {
 			await withTransaction(async () => {
 				const updated = await syncLogsRepository.update(999999, {
-					status: SYNC_STATUSES.COMPLETED,
+					records_processed: 100,
 				});
 				expect(updated).toBeNull();
-			});
-		});
-	});
-
-	describe("completeSync", () => {
-		it("should complete sync with processing statistics", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトと同期ログを作成
-				const project = await createProject();
-				const syncLog = await createSyncLog({ project_id: project.id });
-
-				const completeParams = {
-					records_processed: 200,
-					records_added: 100,
-				};
-
-				const completed = await syncLogsRepository.completeSync(
-					syncLog.id,
-					completeParams,
-				);
-
-				expect(completed).toBeDefined();
-				expect(completed?.id).toBe(syncLog.id);
-				expect(completed?.status).toBe(SYNC_STATUSES.COMPLETED);
-				expect(completed?.completed_at).toBeDefined();
-				expect(completed?.records_processed).toBe(200);
-				expect(completed?.records_added).toBe(100);
-				expect(completed?.error_message).toBeNull();
-			});
-		});
-
-		it("should complete sync with default parameters", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトと同期ログを作成
-				const project = await createProject();
-				const syncLog = await createSyncLog({ project_id: project.id });
-
-				const completed = await syncLogsRepository.completeSync(syncLog.id);
-
-				expect(completed).toBeDefined();
-				expect(completed?.status).toBe(SYNC_STATUSES.COMPLETED);
-				expect(completed?.completed_at).toBeDefined();
-				expect(completed?.records_processed).toBeNull();
-				expect(completed?.records_added).toBeNull();
-			});
-		});
-
-		it("should return null for non-existent sync log", async () => {
-			await withTransaction(async () => {
-				const completed = await syncLogsRepository.completeSync(999999);
-				expect(completed).toBeNull();
-			});
-		});
-	});
-
-	describe("failSync", () => {
-		it("should fail sync with error message", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトと同期ログを作成
-				const project = await createProject();
-				const syncLog = await createSyncLog({ project_id: project.id });
-
-				const failParams = {
-					error_message: "カスタムエラーメッセージ",
-				};
-
-				const failed = await syncLogsRepository.failSync(
-					syncLog.id,
-					failParams,
-				);
-
-				expect(failed).toBeDefined();
-				expect(failed?.id).toBe(syncLog.id);
-				expect(failed?.status).toBe(SYNC_STATUSES.FAILED);
-				expect(failed?.completed_at).toBeDefined();
-				expect(failed?.error_message).toBe("カスタムエラーメッセージ");
-			});
-		});
-
-		it("should return null for non-existent sync log", async () => {
-			await withTransaction(async () => {
-				const failParams = {
-					error_message: "テスト用エラーメッセージ",
-				};
-				const failed = await syncLogsRepository.failSync(999999, failParams);
-				expect(failed).toBeNull();
 			});
 		});
 	});

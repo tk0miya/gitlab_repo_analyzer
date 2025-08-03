@@ -1,13 +1,8 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import { getDb } from "@/database/connection";
-import type {
-	CompleteSyncParams,
-	FailSyncParams,
-	FindSyncLogsParams,
-} from "@/database/repositories/types/sync-logs";
+import type { FindSyncLogsParams } from "@/database/repositories/types/sync-logs";
 import {
 	type NewSyncLog,
-	SYNC_STATUSES,
 	type SyncLog,
 	type SyncType,
 	syncLogs,
@@ -26,17 +21,8 @@ export class SyncLogsRepository {
 	 * @returns 作成された同期ログ
 	 */
 	async create(syncLogData: NewSyncLog): Promise<SyncLog> {
-		// ステータス未指定時はrunningをデフォルトに設定
-		const dataWithDefaults = {
-			...syncLogData,
-			status: syncLogData.status ?? SYNC_STATUSES.RUNNING,
-		};
-
 		const db = await getDb();
-		const [created] = await db
-			.insert(syncLogs)
-			.values(dataWithDefaults)
-			.returning();
+		const [created] = await db.insert(syncLogs).values(syncLogData).returning();
 
 		if (!created) {
 			throw new Error("同期ログの作成に失敗しました");
@@ -64,7 +50,7 @@ export class SyncLogsRepository {
 	 */
 	async find(params: FindSyncLogsParams = {}): Promise<SyncLog[]> {
 		const db = await getDb();
-		const { project_id, sync_type, status, limit = 100, offset = 0 } = params;
+		const { project_id, sync_type, limit = 100, offset = 0 } = params;
 
 		// 条件を構築
 		const conditions = [];
@@ -74,9 +60,6 @@ export class SyncLogsRepository {
 		if (sync_type !== undefined) {
 			conditions.push(eq(syncLogs.sync_type, sync_type));
 		}
-		if (status !== undefined) {
-			conditions.push(eq(syncLogs.status, status));
-		}
 
 		// 条件に応じてクエリを構築
 		if (conditions.length > 0) {
@@ -84,14 +67,14 @@ export class SyncLogsRepository {
 				.select()
 				.from(syncLogs)
 				.where(and(...conditions))
-				.orderBy(desc(syncLogs.started_at))
+				.orderBy(desc(syncLogs.completed_at))
 				.limit(limit)
 				.offset(offset);
 		} else {
 			return await db
 				.select()
 				.from(syncLogs)
-				.orderBy(desc(syncLogs.started_at))
+				.orderBy(desc(syncLogs.completed_at))
 				.limit(limit)
 				.offset(offset);
 		}
@@ -140,7 +123,7 @@ export class SyncLogsRepository {
 		params: Omit<FindSyncLogsParams, "limit" | "offset"> = {},
 	): Promise<number> {
 		const db = await getDb();
-		const { project_id, sync_type, status } = params;
+		const { project_id, sync_type } = params;
 
 		// 条件を構築
 		const conditions = [];
@@ -149,9 +132,6 @@ export class SyncLogsRepository {
 		}
 		if (sync_type !== undefined) {
 			conditions.push(eq(syncLogs.sync_type, sync_type));
-		}
-		if (status !== undefined) {
-			conditions.push(eq(syncLogs.status, status));
 		}
 
 		// 条件に応じてクエリを構築
@@ -187,41 +167,5 @@ export class SyncLogsRepository {
 			.where(eq(syncLogs.id, id))
 			.returning();
 		return updated || null;
-	}
-
-	/**
-	 * 同期処理を完了
-	 * @param id 同期ログID
-	 * @param params 同期完了パラメータ
-	 * @returns 更新された同期ログ（見つからない場合はnull）
-	 */
-	async completeSync(
-		id: number,
-		params: CompleteSyncParams = {},
-	): Promise<SyncLog | null> {
-		const { records_processed, records_added } = params;
-
-		return await this.update(id, {
-			status: SYNC_STATUSES.COMPLETED,
-			completed_at: new Date(),
-			records_processed,
-			records_added,
-		});
-	}
-
-	/**
-	 * 同期処理を失敗
-	 * @param id 同期ログID
-	 * @param params 同期失敗パラメータ
-	 * @returns 更新された同期ログ（見つからない場合はnull）
-	 */
-	async failSync(id: number, params: FailSyncParams): Promise<SyncLog | null> {
-		const { error_message } = params;
-
-		return await this.update(id, {
-			status: SYNC_STATUSES.FAILED,
-			completed_at: new Date(),
-			error_message,
-		});
 	}
 }
