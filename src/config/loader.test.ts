@@ -41,7 +41,7 @@ describe("ConfigLoader", () => {
 		expect(config.gitlab.token).toBe("test-token");
 		expect(config.database.host).toBe("test-host");
 		expect(config.database.port).toBe(3306);
-		expect(config.database.database).toBe("test-db");
+		expect(config.database.database).toBe("gitlab_analyzer_test");
 		expect(config.database.username).toBe("test-user");
 		expect(config.database.password).toBe("test-pass");
 		expect(config.database.ssl).toBe(true);

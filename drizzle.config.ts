@@ -10,7 +10,10 @@ export default {
 		port: Number(process.env.DB_PORT) || 5432,
 		user: process.env.DB_USERNAME || "analyzer_user",
 		password: process.env.DB_PASSWORD || "",
-		database: process.env.DB_DATABASE || "gitlab_analyzer",
+		database:
+			process.env.NODE_ENV === "test"
+				? process.env.DB_DATABASE_TEST || "gitlab_analyzer_test"
+				: process.env.DB_DATABASE || "gitlab_analyzer_development",
 		ssl: process.env.DB_SSL === "true",
 	},
 	verbose: true,
