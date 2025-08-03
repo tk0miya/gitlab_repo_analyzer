@@ -31,15 +31,6 @@ export const syncLogs = pgTable(
 		// 同期タイプ（必須）
 		sync_type: syncTypeEnum("sync_type").notNull(),
 
-		// 同期完了日時（必須）
-		completed_at: timestamp("completed_at").notNull(),
-
-		// 処理レコード数（必須）
-		records_processed: integer("records_processed").notNull(),
-
-		// 追加レコード数（必須）
-		records_added: integer("records_added").notNull(),
-
 		// 最後に処理したアイテムの日時（必須、コミット・MR同期時に使用）
 		last_item_date: timestamp("last_item_date").notNull(),
 
@@ -47,10 +38,12 @@ export const syncLogs = pgTable(
 		created_at: timestamp("created_at").defaultNow().notNull(),
 	},
 	(table) => ({
-		// プロジェクト + タイプ + 完了日時での検索・ソート用複合インデックス
-		project_type_completed_idx: index(
-			"sync_logs_project_type_completed_idx",
-		).on(table.project_id, table.sync_type, table.completed_at),
+		// プロジェクト + タイプ + 作成日時での検索・ソート用複合インデックス
+		project_type_created_idx: index("sync_logs_project_type_created_idx").on(
+			table.project_id,
+			table.sync_type,
+			table.created_at,
+		),
 	}),
 );
 
