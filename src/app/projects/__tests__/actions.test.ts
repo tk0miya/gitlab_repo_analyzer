@@ -13,7 +13,7 @@ import { GitLabApiClient } from "@/api/gitlab-client";
 import { closeConnection } from "@/database/connection";
 import { createProject } from "@/database/testing/factories/index";
 import { withTransaction } from "@/database/testing/transaction";
-import { getProjects, registerProject } from "../actions";
+import { deleteProject, getProjects, registerProject } from "../actions";
 
 // モック設定
 vi.mock("next/navigation", () => ({
@@ -193,6 +193,103 @@ describe("actions.tsx", () => {
 
 			expect(result.success).toBe(false);
 			expect(result.error).toBe("GitLab API error");
+		});
+	});
+});
+
+describe("deleteProject Server Action", () => {
+	afterAll(async () => {
+		await closeConnection();
+	});
+
+	const mockFormData = (projectId: string) => {
+		const formData = new FormData();
+		formData.append("projectId", projectId);
+		return formData;
+	};
+
+	it("プロジェクトを正常に削除できる", async () => {
+		await withTransaction(async () => {
+			// テストプロジェクトを作成
+			const project = await createProject({ name: "削除テスト用プロジェクト" });
+
+			const formData = mockFormData(project.id.toString());
+
+			// プロジェクト削除を実行
+			const result = await deleteProject(null, formData);
+
+			// 削除が成功することを確認
+			expect(result.success).toBe(true);
+			expect(result.error).toBeUndefined();
+
+			// データベースからプロジェクトが削除されたことを確認
+			const { projectsRepository } = await import("@/database/index");
+			const deletedProject = await projectsRepository.findById(project.id);
+			expect(deletedProject).toBeNull();
+		});
+	});
+
+	it("存在しないプロジェクトIDでも成功を返す（冪等性）", async () => {
+		const formData = mockFormData("999999");
+
+		const result = await deleteProject(null, formData);
+
+		expect(result.success).toBe(true);
+		expect(result.error).toBeUndefined();
+	});
+
+	it("無効なプロジェクトIDでエラーを返す", async () => {
+		const formData = mockFormData("invalid");
+
+		const result = await deleteProject(null, formData);
+
+		expect(result.success).toBe(false);
+		expect(result.error).toBe("無効なプロジェクトIDです");
+	});
+
+	it("プロジェクトIDが空文字でエラーを返す", async () => {
+		const formData = mockFormData("");
+
+		const result = await deleteProject(null, formData);
+
+		expect(result.success).toBe(false);
+		expect(result.error).toBe("プロジェクトIDが指定されていません");
+	});
+
+	it("プロジェクトIDが未指定でエラーを返す", async () => {
+		const formData = new FormData(); // projectIdを追加しない
+
+		const result = await deleteProject(null, formData);
+
+		expect(result.success).toBe(false);
+		expect(result.error).toBe("プロジェクトIDが指定されていません");
+	});
+
+	it("データベースエラー時に適切なエラーを返す", async () => {
+		await withTransaction(async () => {
+			// テストプロジェクトを作成
+			const project = await createProject({
+				name: "エラーテスト用プロジェクト",
+			});
+
+			// projectsRepositoryのdeleteメソッドを一時的にモック
+			const { projectsRepository } = await import("@/database/index");
+			const originalDelete = projectsRepository.delete;
+
+			projectsRepository.delete = vi
+				.fn()
+				.mockRejectedValue(new Error("Database error"));
+
+			try {
+				const formData = mockFormData(project.id.toString());
+				const result = await deleteProject(null, formData);
+
+				expect(result.success).toBe(false);
+				expect(result.error).toBe("Database error");
+			} finally {
+				// 元のメソッドに戻す
+				projectsRepository.delete = originalDelete;
+			}
 		});
 	});
 });

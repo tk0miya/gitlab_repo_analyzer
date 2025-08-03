@@ -35,6 +35,14 @@ export type ProjectRegistrationResult = {
 };
 
 /**
+ * プロジェクト削除のServer Action結果型
+ */
+export type ProjectDeletionResult = {
+	success: boolean;
+	error?: string;
+};
+
+/**
  * URLからプロジェクトスラッグを抽出
  */
 function extractProjectSlug(url: string): string {
@@ -120,6 +128,51 @@ export async function registerProject(
 				error instanceof Error
 					? error.message
 					: "プロジェクトの登録に失敗しました",
+		};
+	}
+}
+
+/**
+ * プロジェクト削除Server Action
+ */
+export async function deleteProject(
+	_prevState: ProjectDeletionResult | null,
+	formData: FormData,
+): Promise<ProjectDeletionResult> {
+	try {
+		// フォームデータからプロジェクトIDを取得
+		const projectId = formData.get("projectId");
+
+		if (!projectId || typeof projectId !== "string") {
+			return {
+				success: false,
+				error: "プロジェクトIDが指定されていません",
+			};
+		}
+
+		const id = Number.parseInt(projectId, 10);
+		if (Number.isNaN(id)) {
+			return {
+				success: false,
+				error: "無効なプロジェクトIDです",
+			};
+		}
+
+		// プロジェクトを削除（冪等性を保証）
+		await projectsRepository.delete(id);
+
+		return {
+			success: true,
+		};
+	} catch (error) {
+		console.error("プロジェクト削除エラー:", error);
+
+		return {
+			success: false,
+			error:
+				error instanceof Error
+					? error.message
+					: "プロジェクトの削除に失敗しました",
 		};
 	}
 }
