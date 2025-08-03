@@ -62,7 +62,7 @@ describe("ホームページ（App Router）", () => {
 		render(<Home />);
 
 		// API呼び出し検証
-		expect(global.fetch).toHaveBeenCalledWith("/api/health");
+		expect(global.fetch).toHaveBeenCalledWith("/health");
 		expect(global.fetch).toHaveBeenCalledTimes(1);
 
 		await waitFor(() => {
