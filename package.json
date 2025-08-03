@@ -12,14 +12,15 @@
 		"dev:web": "next dev -H 0.0.0.0 -p 18080",
 		"build:web": "next build",
 		"start:web": "next start",
-		"test": "vitest run",
-		"test:watch": "vitest",
+		"test": "NODE_ENV=test vitest run",
+		"test:watch": "NODE_ENV=test vitest",
 		"lint": "biome ci . --error-on-warnings",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",
 		"all": "npm run lint && npm run typecheck && npm run test && npm run build",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
+		"db:migrate:test": "NODE_ENV=test drizzle-kit migrate",
 		"db:check": "drizzle-kit check",
 		"prepare": "husky"
 	},
@@ -75,7 +76,7 @@
 		"*.{ts,tsx}": [
 			"biome check --write",
 			"bash -c 'npm run typecheck'",
-			"vitest related --run --passWithNoTests"
+			"bash -c 'NODE_ENV=test vitest related --run --passWithNoTests'"
 		]
 	}
 }

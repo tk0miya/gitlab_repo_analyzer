@@ -44,7 +44,7 @@ describe("設定システムテスト", () => {
 
 		expect(config.gitlab.token).toBe("test-token-12345");
 		expect(config.gitlab.url).toBe("https://gitlab.com");
-		expect(config.database.database).toBe("test-database");
+		expect(config.database.database).toBe("gitlab_analyzer_test");
 		expect(config.database.username).toBe("test-user");
 	});
 

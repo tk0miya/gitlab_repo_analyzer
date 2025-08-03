@@ -47,7 +47,10 @@ export class ConfigLoader {
 			database: {
 				host: process.env.DB_HOST || "localhost",
 				port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
-				database: process.env.DB_DATABASE || "",
+				database:
+					process.env.NODE_ENV === "test"
+						? process.env.DB_DATABASE_TEST || "gitlab_analyzer_test"
+						: process.env.DB_DATABASE || "gitlab_analyzer_development",
 				username: process.env.DB_USERNAME || "",
 				password: process.env.DB_PASSWORD,
 				ssl: process.env.DB_SSL === "true",

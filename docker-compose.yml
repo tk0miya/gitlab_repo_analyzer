@@ -16,7 +16,6 @@ services:
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_DATABASE=gitlab_analyzer
       - DB_USERNAME=analyzer_user
       - DB_PASSWORD=dev_password
       - DB_SSL=false
@@ -42,6 +41,8 @@ services:
     volumes:
       # データ永続化用
       - postgres_data:/var/lib/postgresql/data
+      # 複数データベース初期化スクリプト
+      - ./config/docker/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U analyzer_user -d gitlab_analyzer"]
       interval: 5s
