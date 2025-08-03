@@ -18,7 +18,7 @@ export default function Home() {
 	useEffect(() => {
 		async function fetchHealth() {
 			try {
-				const response = await fetch("/api/health");
+				const response = await fetch("/health");
 				const data = await response.json();
 				setHealthData(data);
 			} catch (error) {

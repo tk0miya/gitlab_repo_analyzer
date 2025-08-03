@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GET } from "@/app/api/health/route";
+import { GET } from "@/app/health/route";
 
-describe("/api/health（App Router）", () => {
+describe("/health（App Router）", () => {
 	afterEach(() => {
 		vi.unstubAllEnvs();
 	});
