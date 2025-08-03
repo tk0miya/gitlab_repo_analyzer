@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { DELETE, GET } from "@/app/api/projects/[id]/route";
+import { GET } from "@/app/api/projects/[id]/route";
 import type { Project } from "@/database/schema/projects";
 import { buildProject } from "@/database/testing/factories/index";
 
@@ -8,7 +8,6 @@ import { buildProject } from "@/database/testing/factories/index";
 vi.mock("@/database/index", () => ({
 	projectsRepository: {
 		findById: vi.fn(),
-		delete: vi.fn(),
 	},
 }));
 
@@ -156,91 +155,6 @@ describe("/api/projects/[id]（App Router）", () => {
 			const mockParams = { params: { id: "1" } };
 
 			const response = await GET(mockRequest, mockParams);
-
-			expect(response.status).toBe(500);
-
-			const responseData = await response.json();
-			expect(responseData).toMatchObject({
-				success: false,
-				timestamp: expect.any(String),
-				error: {
-					message: "サーバー内部でエラーが発生しました",
-				},
-			});
-		});
-	});
-
-	describe("DELETE /api/projects/:id", () => {
-		it("指定されたIDのプロジェクトを削除し204を返す", async () => {
-			vi.mocked(projectsRepository.delete).mockResolvedValue(true);
-
-			const mockRequest = new Request("http://localhost/api/projects/1", {
-				method: "DELETE",
-			}) as NextRequest;
-			const mockParams = { params: { id: "1" } };
-
-			const response = await DELETE(mockRequest, mockParams);
-
-			expect(response.status).toBe(204);
-			expect(await response.text()).toBe("");
-
-			// repositoryのdeleteが正しい引数で呼び出されたことを確認
-			expect(projectsRepository.delete).toHaveBeenCalledTimes(1);
-			expect(projectsRepository.delete).toHaveBeenCalledWith(1);
-		});
-
-		it("存在しないプロジェクトでも冪等性により204を返す", async () => {
-			vi.mocked(projectsRepository.delete).mockResolvedValue(false);
-
-			const mockRequest = new Request("http://localhost/api/projects/999999", {
-				method: "DELETE",
-			}) as NextRequest;
-			const mockParams = { params: { id: "999999" } };
-
-			const response = await DELETE(mockRequest, mockParams);
-
-			expect(response.status).toBe(204);
-			expect(await response.text()).toBe("");
-
-			expect(projectsRepository.delete).toHaveBeenCalledWith(999999);
-		});
-
-		it("無効なID（負の数）で400エラーを返す", async () => {
-			const mockRequest = new Request("http://localhost/api/projects/-1", {
-				method: "DELETE",
-			}) as NextRequest;
-			const mockParams = { params: { id: "-1" } };
-
-			const response = await DELETE(mockRequest, mockParams);
-
-			expect(response.status).toBe(400);
-
-			const responseData = await response.json();
-			expect(responseData).toMatchObject({
-				success: false,
-				timestamp: expect.any(String),
-				error: {
-					message: "IDが無効です",
-					details: expect.stringContaining("数値である必要があります"),
-				},
-			});
-
-			// 無効なIDの場合はdeleteが呼ばれない
-			expect(projectsRepository.delete).not.toHaveBeenCalled();
-		});
-
-		it("データベースエラー時に500エラーを返す", async () => {
-			const errorMessage = "Database connection error";
-			vi.mocked(projectsRepository.delete).mockRejectedValue(
-				new Error(errorMessage),
-			);
-
-			const mockRequest = new Request("http://localhost/api/projects/1", {
-				method: "DELETE",
-			}) as NextRequest;
-			const mockParams = { params: { id: "1" } };
-
-			const response = await DELETE(mockRequest, mockParams);
 
 			expect(response.status).toBe(500);
 
