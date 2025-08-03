@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { GitLabApiClient } from "@/api/gitlab-client";
 import { projectsRepository } from "@/database/index";
 import type { Project } from "@/database/schema/projects";
+import { GitLabApiClient } from "@/lib/gitlab_client";
 import { projectRegistrationSchema } from "@/lib/validation/project-schemas";
 
 /**

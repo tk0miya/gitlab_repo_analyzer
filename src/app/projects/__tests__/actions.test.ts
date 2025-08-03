@@ -8,11 +8,13 @@ import {
 	it,
 	vi,
 } from "vitest";
-import type { GitLabApiClient as GitLabApiClientType } from "@/api/gitlab-client";
-import { GitLabApiClient } from "@/api/gitlab-client";
 import { closeConnection } from "@/database/connection";
 import { createProject } from "@/database/testing/factories/index";
 import { withTransaction } from "@/database/testing/transaction";
+import {
+	GitLabApiClient,
+	type GitLabApiClient as GitLabApiClientType,
+} from "@/lib/gitlab_client";
 import { deleteProject, getProjects, registerProject } from "../actions";
 
 // モック設定
@@ -20,7 +22,7 @@ vi.mock("next/navigation", () => ({
 	redirect: vi.fn(),
 }));
 
-vi.mock("@/api/gitlab-client");
+vi.mock("@/lib/gitlab_client");
 
 const mockGitLabApiClient = vi.mocked(GitLabApiClient);
 const mockRedirect = vi.mocked(redirect);
