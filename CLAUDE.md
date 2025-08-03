@@ -68,7 +68,8 @@ npm run build:web    # Webアプリケーション
 ```
 src/
 ├── app/          # Next.js App Router（Webアプリケーション）
-│   ├── api/      # Route Handlers（REST API）
+│   ├── health/   # ヘルスチェックAPI
+│   ├── projects/ # プロジェクト管理（Server Actions）
 │   ├── layout.tsx # ルートレイアウト
 │   └── page.tsx  # ホームページ
 ├── api/          # GitLab APIクライアントと型定義
@@ -88,7 +89,7 @@ src/
 ### ディレクトリ構成の原則
 
 1. **レイヤードアーキテクチャ**
-   - `app/`: プレゼンテーション層（UI、API Routes）
+   - `app/`: プレゼンテーション層（UI、Server Actions）
    - `database/`: データアクセス層
    - `api/`: 外部サービス統合層（GitLab API）
    - `config/`: 設定管理層
