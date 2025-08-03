@@ -40,7 +40,7 @@ describe("Sync Logs Repository", () => {
 				expect(syncLog.completed_at).toBeDefined();
 				expect(syncLog.records_processed).toBe(10);
 				expect(syncLog.records_added).toBe(5);
-				expect(syncLog.last_commit_date).toBeDefined();
+				expect(syncLog.last_item_date).toBeDefined();
 				expect(syncLog.created_at).toBeDefined();
 			});
 		});
@@ -456,7 +456,7 @@ describe("Sync Logs Repository", () => {
 				const updateData = {
 					records_processed: 150,
 					records_added: 75,
-					last_commit_date: new Date(),
+					last_item_date: new Date(),
 				};
 
 				const updated = await syncLogsRepository.update(syncLog.id, updateData);
@@ -465,7 +465,7 @@ describe("Sync Logs Repository", () => {
 				expect(updated?.id).toBe(syncLog.id);
 				expect(updated?.records_processed).toBe(updateData.records_processed);
 				expect(updated?.records_added).toBe(updateData.records_added);
-				expect(updated?.last_commit_date).toEqual(updateData.last_commit_date);
+				expect(updated?.last_item_date).toEqual(updateData.last_item_date);
 				expect(updated?.project_id).toBe(syncLog.project_id); // 変更されていない
 			});
 		});

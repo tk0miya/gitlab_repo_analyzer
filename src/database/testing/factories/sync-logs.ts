@@ -29,7 +29,7 @@ export function buildNewSyncLog(
 		completed_at: new Date("2023-01-01T10:30:00Z"),
 		records_processed: 10,
 		records_added: 5,
-		last_commit_date: new Date("2023-01-01T09:00:00Z"),
+		last_item_date: new Date("2023-01-01T09:00:00Z"),
 		...overrides,
 	};
 }
@@ -54,8 +54,8 @@ export function buildSyncLog(overrides: Partial<SyncLog> = {}): SyncLog {
 		newSyncLogOverrides.records_processed = overrides.records_processed;
 	if (overrides.records_added !== undefined)
 		newSyncLogOverrides.records_added = overrides.records_added;
-	if (overrides.last_commit_date !== undefined)
-		newSyncLogOverrides.last_commit_date = overrides.last_commit_date;
+	if (overrides.last_item_date !== undefined)
+		newSyncLogOverrides.last_item_date = overrides.last_item_date;
 
 	const baseSyncLogData = buildNewSyncLog(newSyncLogOverrides);
 
@@ -72,8 +72,7 @@ export function buildSyncLog(overrides: Partial<SyncLog> = {}): SyncLog {
 		completed_at: result.completed_at ?? new Date("2023-01-01T10:30:00Z"),
 		records_processed: result.records_processed ?? 10,
 		records_added: result.records_added ?? 5,
-		last_commit_date:
-			result.last_commit_date ?? new Date("2023-01-01T09:00:00Z"),
+		last_item_date: result.last_item_date ?? new Date("2023-01-01T09:00:00Z"),
 	};
 }
 

@@ -40,8 +40,8 @@ export const syncLogs = pgTable(
 		// 追加レコード数（必須）
 		records_added: integer("records_added").notNull(),
 
-		// 最後に処理したコミットの日時（必須、コミット同期時に使用）
-		last_commit_date: timestamp("last_commit_date").notNull(),
+		// 最後に処理したアイテムの日時（必須、コミット・MR同期時に使用）
+		last_item_date: timestamp("last_item_date").notNull(),
 
 		// 内部作成日時
 		created_at: timestamp("created_at").defaultNow().notNull(),
