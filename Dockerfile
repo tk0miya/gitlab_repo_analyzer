@@ -40,6 +40,9 @@ WORKDIR /app
 # Git credential helper設定（環境変数からGitHubトークンを使用）
 RUN git config --system credential.helper '!f() { echo "username=token"; echo "password=$GITHUB_TOKEN"; }; f'
 
+# シェル履歴の永続化設定
+RUN echo "export PROMPT_COMMAND='history -a' && export HISTFILE=/shell_history/.bash_history" >> "/root/.bashrc"
+
 # アプリケーションポートを公開
 EXPOSE 8080
 
