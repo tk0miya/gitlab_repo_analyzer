@@ -1,7 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { closeConnection } from "@/database/connection";
 import { commitsRepository } from "@/database/repositories";
-import type { NewCommit } from "@/database/schema/commits";
 import {
 	buildNewCommit,
 	buildNewCommits,
@@ -95,66 +94,6 @@ describe("Commits Repository", () => {
 			await withTransaction(async () => {
 				const commits = await commitsRepository.bulkInsert([]);
 				expect(commits).toHaveLength(0);
-			});
-		});
-	});
-
-	describe("upsertBySha", () => {
-		it("should create new commit when it doesn't exist", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトを作成
-				const project = await createProject();
-
-				const testCommit = buildNewCommit({ project_id: project.id });
-				const upserted = await commitsRepository.upsertBySha(
-					project.id,
-					testCommit,
-				);
-
-				expect(upserted).toBeDefined();
-				expect(upserted.project_id).toBe(project.id);
-				expect(upserted.sha).toBe(testCommit.sha);
-				expect(upserted.message).toBe(testCommit.message);
-			});
-		});
-
-		it("should update existing commit when it exists", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトを作成
-				const project = await createProject();
-
-				// 既存のコミットを作成
-				const testCommit = buildNewCommit({ project_id: project.id });
-				const commit = await commitsRepository.create(testCommit);
-
-				const updatedData: NewCommit = buildNewCommit({
-					project_id: project.id,
-					sha: testCommit.sha,
-					message: "upsertで更新されたメッセージ",
-					author_name: "upsertで更新されたユーザー",
-				});
-
-				const upserted = await commitsRepository.upsertBySha(
-					project.id,
-					updatedData,
-				);
-
-				expect(upserted.id).toBe(commit.id);
-				expect(upserted.message).toBe(updatedData.message);
-				expect(upserted.author_name).toBe(updatedData.author_name);
-			});
-		});
-
-		it("should throw error when SHA is missing", async () => {
-			await withTransaction(async () => {
-				const validData = buildNewCommit();
-				const invalidData = { ...validData };
-				// biome-ignore lint/suspicious/noExplicitAny: テスト用途での型回避のため必要
-				delete (invalidData as any).sha;
-
-				await expect(
-					commitsRepository.upsertBySha(1, invalidData),
-				).rejects.toThrow("コミットSHAが必要です");
 			});
 		});
 	});
@@ -285,93 +224,6 @@ describe("Commits Repository", () => {
 		});
 	});
 
-	describe("findCommitsByAuthor", () => {
-		it("should return commits for a specific author", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトを作成
-				const project = await createProject();
-
-				const authorEmail = "author@example.com";
-				const authorName = "テスト作者";
-
-				// 特定作者のコミットを作成
-				await createCommits(3, {
-					project_id: project.id,
-					author_email: authorEmail,
-					author_name: authorName,
-				});
-
-				// 別の作者のコミットも作成
-				const otherCommit = buildNewCommit({
-					project_id: project.id,
-					author_email: "other@example.com",
-					author_name: "別のユーザー",
-				});
-				await commitsRepository.create(otherCommit);
-
-				const commits = await commitsRepository.findCommitsByAuthor(
-					project.id,
-					authorEmail,
-					10,
-					0,
-				);
-
-				expect(Array.isArray(commits)).toBe(true);
-				expect(commits.length).toBe(3);
-
-				// すべてのコミットが指定した作者のものであることを確認
-				for (const commit of commits) {
-					expect(commit.author_email).toBe(authorEmail);
-					expect(commit.author_name).toBe(authorName);
-				}
-
-				// author_date降順でソートされているかチェック
-				for (let i = 1; i < commits.length; i++) {
-					expect(commits[i].author_date <= commits[i - 1].author_date).toBe(
-						true,
-					);
-				}
-			});
-		});
-
-		it("should respect limit and offset parameters", async () => {
-			await withTransaction(async () => {
-				// テスト用プロジェクトを作成
-				const project = await createProject();
-
-				const authorEmail = "author@example.com";
-
-				// 特定作者のコミットを作成
-				await createCommits(5, {
-					project_id: project.id,
-					author_email: authorEmail,
-					author_name: "テスト作者",
-				});
-
-				const firstPage = await commitsRepository.findCommitsByAuthor(
-					project.id,
-					authorEmail,
-					2,
-					0,
-				);
-				const secondPage = await commitsRepository.findCommitsByAuthor(
-					project.id,
-					authorEmail,
-					2,
-					2,
-				);
-
-				expect(firstPage.length).toBeLessThanOrEqual(2);
-				expect(secondPage.length).toBeLessThanOrEqual(2);
-
-				// 異なるページであることを確認
-				if (firstPage.length > 0 && secondPage.length > 0) {
-					expect(firstPage[0].id).not.toBe(secondPage[0].id);
-				}
-			});
-		});
-	});
-
 	describe("countByProject", () => {
 		it("should return total count of commits for a project", async () => {
 			await withTransaction(async () => {
@@ -391,40 +243,80 @@ describe("Commits Repository", () => {
 		});
 	});
 
-	// ==================== UPDATE操作 ====================
-
-	describe("update", () => {
-		it("should update existing commit", async () => {
+	describe("findAllBySha", () => {
+		it("should return commits matching given SHAs", async () => {
 			await withTransaction(async () => {
-				// テスト用プロジェクトとコミットを作成
+				// テスト用プロジェクトを作成
 				const project = await createProject();
-				const commit = await createCommit({ project_id: project.id });
 
-				const updateData = {
-					message: "更新されたコミットメッセージ",
-					author_name: "更新されたユーザー",
-					additions: 20,
-					deletions: 10,
-				};
+				// テストコミットを作成
+				const commit1 = await createCommit({ project_id: project.id });
+				const commit2 = await createCommit({ project_id: project.id });
+				const commit3 = await createCommit({ project_id: project.id });
 
-				const updated = await commitsRepository.update(commit.id, updateData);
+				// SHA配列で検索
+				const targetShas = [commit1.sha, commit3.sha];
+				const commits = await commitsRepository.findAllBySha(targetShas);
 
-				expect(updated).toBeDefined();
-				expect(updated?.id).toBe(commit.id);
-				expect(updated?.message).toBe(updateData.message);
-				expect(updated?.author_name).toBe(updateData.author_name);
-				expect(updated?.additions).toBe(updateData.additions);
-				expect(updated?.deletions).toBe(updateData.deletions);
-				expect(updated?.sha).toBe(commit.sha); // 変更されていない
+				expect(Array.isArray(commits)).toBe(true);
+				expect(commits.length).toBe(2);
+
+				const foundShas = commits.map((c) => c.sha);
+				expect(foundShas).toContain(commit1.sha);
+				expect(foundShas).toContain(commit3.sha);
+				expect(foundShas).not.toContain(commit2.sha);
 			});
 		});
 
-		it("should return null for non-existent commit", async () => {
+		it("should return empty array when no SHAs provided", async () => {
 			await withTransaction(async () => {
-				const updated = await commitsRepository.update(999999, {
-					message: "test",
-				});
-				expect(updated).toBeNull();
+				const commits = await commitsRepository.findAllBySha([]);
+
+				expect(Array.isArray(commits)).toBe(true);
+				expect(commits.length).toBe(0);
+			});
+		});
+
+		it("should return empty array when no matching commits found", async () => {
+			await withTransaction(async () => {
+				// コミットを作成してDBに存在しないSHAがあることを明確にする
+				const project = await createProject();
+				// 実際にコミットを作成して、異なるSHAで検索することで
+				// コミットが存在するが一致しない場合をテスト
+				await createCommit({ project_id: project.id, sha: "existing-sha" });
+
+				const commits = await commitsRepository.findAllBySha([
+					"nonexistent-sha-1",
+					"nonexistent-sha-2",
+				]);
+
+				expect(Array.isArray(commits)).toBe(true);
+				expect(commits.length).toBe(0);
+			});
+		});
+
+		it("should return commits from all projects when searching by SHA", async () => {
+			await withTransaction(async () => {
+				// 2つのプロジェクトを作成
+				const project1 = await createProject();
+				const project2 = await createProject();
+
+				// 各プロジェクトにコミットを作成
+				const commit1 = await createCommit({ project_id: project1.id });
+				const commit2 = await createCommit({ project_id: project2.id });
+
+				// 両方のコミットを検索（プロジェクトに関係なく取得される）
+				const commits = await commitsRepository.findAllBySha([
+					commit1.sha,
+					commit2.sha,
+				]);
+
+				expect(Array.isArray(commits)).toBe(true);
+				expect(commits.length).toBe(2);
+
+				const foundShas = commits.map((c) => c.sha);
+				expect(foundShas).toContain(commit1.sha);
+				expect(foundShas).toContain(commit2.sha);
 			});
 		});
 	});
