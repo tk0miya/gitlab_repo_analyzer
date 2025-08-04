@@ -12,5 +12,7 @@ export default defineConfig({
 		setupFiles: ["./config/vitest/setup.ts"], // Setup file for React Testing Library
 		mockReset: true,
 		restoreMocks: true,
+		silent: "passed-only", // 成功したテストのconsole出力を抑制
+		reporters: "dot", // 最小限のドット表示
 	},
 });
