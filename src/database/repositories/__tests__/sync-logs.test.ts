@@ -242,15 +242,29 @@ describe("Sync Logs Repository", () => {
 				// テスト用プロジェクトを作成
 				const project = await createProject();
 
-				// 複数の同期ログを作成し、配列で保存
-				const createdLogs = await createSyncLogs(3, { project_id: project.id });
+				// created_atをずらしながら3つの同期ログを作成
+				const baseDate = new Date();
+				const createdLogs = await Promise.all([
+					createSyncLog({
+						project_id: project.id,
+						created_at: new Date(baseDate.getTime()),
+					}),
+					createSyncLog({
+						project_id: project.id,
+						created_at: new Date(baseDate.getTime() + 10),
+					}),
+					createSyncLog({
+						project_id: project.id,
+						created_at: new Date(baseDate.getTime() + 20),
+					}),
+				]);
 
 				const latest = await syncLogsRepository.findLatest(project.id);
 
 				expect(latest).toBeDefined();
 				expect(latest?.project_id).toBe(project.id);
 
-				// 最後に作成されたログと比較
+				// 最後に作成されたログ（最新のcreated_at）と比較
 				expect(latest?.id).toBe(createdLogs[2].id);
 			});
 		});
