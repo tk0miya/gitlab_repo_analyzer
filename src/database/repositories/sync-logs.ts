@@ -46,7 +46,7 @@ export class SyncLogsRepository {
 	/**
 	 * 条件に基づいて同期ログを検索（ページネーション対応）
 	 * @param params 検索条件
-	 * @returns 同期ログ配列（開始日時降順でソート）
+	 * @returns 同期ログ配列（作成日時降順でソート）
 	 */
 	async find(params: FindSyncLogsParams = {}): Promise<SyncLog[]> {
 		const db = await getDb();
@@ -67,14 +67,14 @@ export class SyncLogsRepository {
 				.select()
 				.from(syncLogs)
 				.where(and(...conditions))
-				.orderBy(desc(syncLogs.completed_at))
+				.orderBy(desc(syncLogs.created_at))
 				.limit(limit)
 				.offset(offset);
 		} else {
 			return await db
 				.select()
 				.from(syncLogs)
-				.orderBy(desc(syncLogs.completed_at))
+				.orderBy(desc(syncLogs.created_at))
 				.limit(limit)
 				.offset(offset);
 		}

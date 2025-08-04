@@ -26,9 +26,6 @@ export function buildNewSyncLog(
 	return {
 		project_id: 1, // デフォルトプロジェクトID
 		sync_type: SYNC_TYPES.PROJECTS,
-		completed_at: new Date("2023-01-01T10:30:00Z"),
-		records_processed: 10,
-		records_added: 5,
 		last_item_date: new Date("2023-01-01T09:00:00Z"),
 		...overrides,
 	};
@@ -48,12 +45,6 @@ export function buildSyncLog(overrides: Partial<SyncLog> = {}): SyncLog {
 		newSyncLogOverrides.project_id = overrides.project_id;
 	if (overrides.sync_type !== undefined)
 		newSyncLogOverrides.sync_type = overrides.sync_type;
-	if (overrides.completed_at !== undefined)
-		newSyncLogOverrides.completed_at = overrides.completed_at;
-	if (overrides.records_processed !== undefined)
-		newSyncLogOverrides.records_processed = overrides.records_processed;
-	if (overrides.records_added !== undefined)
-		newSyncLogOverrides.records_added = overrides.records_added;
 	if (overrides.last_item_date !== undefined)
 		newSyncLogOverrides.last_item_date = overrides.last_item_date;
 
@@ -69,9 +60,6 @@ export function buildSyncLog(overrides: Partial<SyncLog> = {}): SyncLog {
 	// undefinedをデフォルト値に変換して型制約を満たす
 	return {
 		...result,
-		completed_at: result.completed_at ?? new Date("2023-01-01T10:30:00Z"),
-		records_processed: result.records_processed ?? 10,
-		records_added: result.records_added ?? 5,
 		last_item_date: result.last_item_date ?? new Date("2023-01-01T09:00:00Z"),
 	};
 }

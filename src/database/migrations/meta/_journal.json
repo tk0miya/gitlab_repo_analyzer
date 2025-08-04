@@ -43,6 +43,13 @@
       "when": 1754222156789,
       "tag": "0005_rename_last_commit_date_to_last_item_date",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1754245799489,
+      "tag": "0006_real_ghost_rider",
+      "breakpoints": true
     }
   ]
 }
