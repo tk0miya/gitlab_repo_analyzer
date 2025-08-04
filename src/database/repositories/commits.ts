@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/database/connection";
 import {
 	type Commit,
@@ -40,29 +40,6 @@ export class CommitsRepository {
 		const db = await getDb();
 		const created = await db.insert(commits).values(commitsData).returning();
 		return created;
-	}
-
-	/**
-	 * プロジェクトID + SHAでコミットを作成または更新（upsert）
-	 * @param projectId プロジェクトID
-	 * @param commitData コミットデータ
-	 * @returns 作成または更新されたコミット
-	 */
-	async upsertBySha(projectId: number, commitData: NewCommit): Promise<Commit> {
-		if (!commitData.sha) {
-			throw new Error("コミットSHAが必要です");
-		}
-
-		const existing = await this.findBySha(projectId, commitData.sha);
-		if (existing) {
-			const updated = await this.update(existing.id, commitData);
-			if (!updated) {
-				throw new Error("コミットの更新に失敗しました");
-			}
-			return updated;
-		} else {
-			return await this.create(commitData);
-		}
 	}
 
 	// ==================== READ操作 ====================
@@ -116,32 +93,21 @@ export class CommitsRepository {
 	}
 
 	/**
-	 * 作者メールアドレスでコミットを取得
-	 * @param projectId プロジェクトID
-	 * @param authorEmail 作者メールアドレス
-	 * @param limit 取得件数制限（デフォルト: 100）
-	 * @param offset オフセット（デフォルト: 0）
-	 * @returns コミット配列（作者日時降順でソート）
+	 * SHA配列でコミットを取得
+	 * @param shas SHA配列
+	 * @returns コミット配列
 	 */
-	async findCommitsByAuthor(
-		projectId: number,
-		authorEmail: string,
-		limit: number = 100,
-		offset: number = 0,
-	): Promise<Commit[]> {
+	async findAllBySha(shas: string[]): Promise<Commit[]> {
+		if (shas.length === 0) {
+			return [];
+		}
+
 		const db = await getDb();
 		return await db
 			.select()
 			.from(commits)
-			.where(
-				and(
-					eq(commits.project_id, projectId),
-					eq(commits.author_email, authorEmail),
-				),
-			)
-			.orderBy(desc(commits.author_date))
-			.limit(limit)
-			.offset(offset);
+			.where(inArray(commits.sha, shas))
+			.orderBy(desc(commits.author_date));
 	}
 
 	/**
@@ -156,27 +122,6 @@ export class CommitsRepository {
 			.from(commits)
 			.where(eq(commits.project_id, projectId));
 		return Number(result?.count || 0);
-	}
-
-	// ==================== UPDATE操作 ====================
-
-	/**
-	 * コミットを更新
-	 * @param id 内部ID
-	 * @param updateData 更新データ
-	 * @returns 更新されたコミット（見つからない場合はnull）
-	 */
-	async update(
-		id: number,
-		updateData: Partial<NewCommit>,
-	): Promise<Commit | null> {
-		const db = await getDb();
-		const [updated] = await db
-			.update(commits)
-			.set(updateData)
-			.where(eq(commits.id, id))
-			.returning();
-		return updated || null;
 	}
 
 	// ==================== DELETE操作 ====================
