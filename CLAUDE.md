@@ -38,14 +38,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # 依存関係のインストール
 npm install
 
-# CLIアプリケーションの実行
-npm start
-
-# CLIアプリケーションの開発用実行（ホットリロード）
-npm run dev
-
 # Webアプリケーションの開発用実行
-npm run dev:web
+npm run dev          # または npm run dev:web
+
+# CLIアプリケーションの開発用実行
+npm run dev:cli
 
 # テストの実行
 npm test
@@ -58,8 +55,13 @@ npm run lint
 npm run format
 
 # ビルド
-npm run build        # CLIアプリケーション
+npm run build        # WebアプリケーションとCLI両方
 npm run build:web    # Webアプリケーション
+npm run build:cli    # CLIアプリケーション
+
+# 本番実行
+npm start            # Webアプリケーション
+npm run start:cli    # CLIアプリケーション（コミット同期）
 ```
 
 ## アーキテクチャ
@@ -72,6 +74,8 @@ src/
 │   ├── projects/ # プロジェクト管理（Server Actions）
 │   ├── layout.tsx # ルートレイアウト
 │   └── page.tsx  # ホームページ
+├── cli/          # CLI専用コード
+│   └── index.ts  # CLIエントリーポイント
 ├── api/          # GitLab APIクライアントと型定義
 ├── components/   # UIコンポーネント（shadcn/ui）
 ├── config/       # 設定管理（環境変数、スキーマ検証）
@@ -81,9 +85,9 @@ src/
 │   ├── schema/        # Drizzle ORMスキーマ定義
 │   └── testing/       # テスト用ファクトリ
 ├── lib/          # 共通ユーティリティ
+├── services/     # ビジネスロジック（Web・CLI共通）
 ├── styles/       # グローバルスタイル
-├── types/        # 共通型定義
-└── index.ts      # CLIエントリーポイント
+└── types/        # 共通型定義
 ```
 
 ### ディレクトリ構成の原則

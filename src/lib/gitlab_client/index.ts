@@ -4,6 +4,10 @@
 
 // メインクライアント
 export { GitLabApiClient } from "./gitlab-client";
+
+// シングルトンインスタンス
+import { GitLabApiClient } from "./gitlab-client";
+export const gitLabApiClient = new GitLabApiClient();
 // コミット関連の型定義
 export type {
 	GitLabCommit,
