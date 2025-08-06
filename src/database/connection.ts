@@ -109,16 +109,3 @@ export async function getPool() {
 	}
 	return _pool;
 }
-
-// 正常な終了時の接続プール終了
-export async function closeConnection(): Promise<void> {
-	try {
-		if (_pool) {
-			await _pool.end();
-			_pool = null;
-			_db = null;
-		}
-	} catch (error) {
-		console.error("データベース接続プール終了エラー:", error);
-	}
-}

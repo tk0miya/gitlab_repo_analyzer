@@ -1,5 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
-import { closeConnection } from "@/database/connection";
+import { describe, expect, it } from "vitest";
 import { syncLogsRepository } from "@/database/repositories";
 import { SYNC_TYPES } from "@/database/schema/sync-logs";
 import {
@@ -11,10 +10,6 @@ import {
 import { withTransaction } from "@/database/testing/transaction";
 
 describe("Sync Logs Repository", () => {
-	afterAll(async () => {
-		await closeConnection();
-	});
-
 	// ==================== CREATE操作 ====================
 
 	describe("create", () => {

@@ -1,5 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
-import { closeConnection } from "@/database/connection";
+import { describe, expect, it } from "vitest";
 import { commitsRepository } from "@/database/repositories";
 import {
 	buildNewCommit,
@@ -11,10 +10,6 @@ import {
 import { withTransaction } from "@/database/testing/transaction";
 
 describe("Commits Repository", () => {
-	afterAll(async () => {
-		await closeConnection();
-	});
-
 	// ==================== CREATE操作 ====================
 
 	describe("create", () => {

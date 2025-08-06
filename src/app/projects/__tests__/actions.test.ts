@@ -1,14 +1,5 @@
 import { redirect } from "next/navigation";
-import {
-	afterAll,
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	it,
-	vi,
-} from "vitest";
-import { closeConnection } from "@/database/connection";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createProject } from "@/database/testing/factories/index";
 import { withTransaction } from "@/database/testing/transaction";
 import {
@@ -28,10 +19,6 @@ const mockGitLabApiClient = vi.mocked(GitLabApiClient);
 const mockRedirect = vi.mocked(redirect);
 
 describe("actions.tsx", () => {
-	afterAll(async () => {
-		await closeConnection();
-	});
-
 	describe("getProjects", () => {
 		afterEach(() => {
 			// すべてのモックを自動復元
@@ -200,10 +187,6 @@ describe("actions.tsx", () => {
 });
 
 describe("deleteProject Server Action", () => {
-	afterAll(async () => {
-		await closeConnection();
-	});
-
 	const mockFormData = (projectId: string) => {
 		const formData = new FormData();
 		formData.append("projectId", projectId);

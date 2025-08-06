@@ -1,14 +1,10 @@
-import { afterAll, describe, expect, it } from "vitest";
-import { closeConnection, getDb, transaction } from "@/database/connection";
+import { describe, expect, it } from "vitest";
+import { getDb, transaction } from "@/database/connection";
 import { ProjectsRepository } from "@/database/repositories/projects";
 import { createProject } from "@/database/testing/factories/index";
 import { withTransaction } from "@/database/testing/transaction";
 
 describe("connection.ts", () => {
-	afterAll(async () => {
-		await closeConnection();
-	});
-
 	describe("getDb()", () => {
 		it("トランザクション外では通常のデータベース接続を返す", async () => {
 			const db = await getDb();
