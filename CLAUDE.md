@@ -64,6 +64,35 @@ npm start            # Webアプリケーション
 npm run start:cli    # CLIアプリケーション（コミット同期）
 ```
 
+### データベース管理
+```bash
+# マイグレーション
+npm run db:generate  # スキーマからマイグレーションファイル生成
+npm run db:migrate   # マイグレーション実行（開発環境）
+npm run db:migrate:test  # マイグレーション実行（テスト環境）
+npm run db:check     # マイグレーションの整合性チェック
+
+# データベースリセット（壊れた時の復旧用）
+npm run db:reset     # 開発環境データベースをリセット
+npm run db:reset:test # テスト環境データベースをリセット
+
+# 手動操作（上級者向け）
+npm run db:drop      # 開発環境データベース削除
+npm run db:drop:test # テスト環境データベース削除  
+npm run db:create    # 開発環境データベース作成
+npm run db:create:test # テスト環境データベース作成
+```
+
+#### データベースリセット方法
+
+```bash
+# 開発環境のデータベースをリセット
+npm run db:reset
+
+# テスト環境のデータベースをリセット  
+npm run db:reset:test
+```
+
 ## アーキテクチャ
 
 ### プロジェクト構造
