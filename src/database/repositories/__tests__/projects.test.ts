@@ -1,5 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
-import { closeConnection } from "@/database/connection";
+import { describe, expect, it } from "vitest";
 import { projectsRepository } from "@/database/repositories";
 import type { NewProject } from "@/database/schema/projects";
 import {
@@ -10,10 +9,6 @@ import {
 import { withTransaction } from "@/database/testing/transaction";
 
 describe("Projects Repository", () => {
-	afterAll(async () => {
-		await closeConnection();
-	});
-
 	describe("create", () => {
 		it("should create a new project", async () => {
 			await withTransaction(async () => {

@@ -1,14 +1,10 @@
-import { afterAll, describe, expect, it } from "vitest";
-import { closeConnection, transaction } from "@/database/connection";
+import { describe, expect, it } from "vitest";
+import { transaction } from "@/database/connection";
 import { projectsRepository } from "@/database/repositories";
 import { createProject } from "@/database/testing/factories/index";
 import { withTransaction } from "@/database/testing/transaction";
 
 describe("withTransaction(): テスト用トランザクション", () => {
-	afterAll(async () => {
-		await closeConnection();
-	});
-
 	it("処理成功時にロールバックが発生すること", async () => {
 		let executionReached = false;
 
