@@ -1,11 +1,35 @@
+"use client";
+
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Button } from "@/components/ui/button";
+import type { Project } from "@/database/schema/projects";
 import { getProjects } from "./actions";
 
-export default async function ProjectsPage() {
-	const projects = await getProjects();
+export default function ProjectsPage() {
+	const [projects, setProjects] = useState<Project[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		async function fetchProjects() {
+			try {
+				const data = await getProjects();
+				setProjects(data);
+			} catch (err) {
+				setError(
+					err instanceof Error
+						? err.message
+						: "プロジェクトの取得に失敗しました",
+				);
+			} finally {
+				setLoading(false);
+			}
+		}
+		fetchProjects();
+	}, []);
 
 	return (
 		<div className="py-8 px-4 max-w-7xl mx-auto">
@@ -29,7 +53,15 @@ export default async function ProjectsPage() {
 				</div>
 			</header>
 
-			{projects.length === 0 ? (
+			{loading ? (
+				<div className="text-center py-12">
+					<p className="text-muted-foreground">プロジェクトを読み込み中...</p>
+				</div>
+			) : error ? (
+				<div className="text-center py-12">
+					<p className="text-destructive">{error}</p>
+				</div>
+			) : projects.length === 0 ? (
 				<div className="text-center py-12">
 					<div className="max-w-md mx-auto">
 						<div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
