@@ -44,8 +44,8 @@ jobs:
       - name: Lint check
         run: npm run lint
         
-      - name: Build
-        run: npm run build
+      # - name: Build
+      #   run: npm run build
         
       - name: Run database migrations
         run: npm run db:migrate

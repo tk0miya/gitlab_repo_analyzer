@@ -25,6 +25,12 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:migrate:test": "NODE_ENV=test drizzle-kit migrate",
 		"db:check": "drizzle-kit check",
+		"db:drop": "PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d postgres -c \"DROP DATABASE IF EXISTS gitlab_analyzer_development;\"",
+		"db:drop:test": "PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d postgres -c \"DROP DATABASE IF EXISTS gitlab_analyzer_test;\"",
+		"db:create": "PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d postgres -c \"CREATE DATABASE gitlab_analyzer_development;\"",
+		"db:create:test": "PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d postgres -c \"CREATE DATABASE gitlab_analyzer_test;\"",
+		"db:reset": "npm run db:drop && npm run db:create && npm run db:migrate",
+		"db:reset:test": "npm run db:drop:test && npm run db:create:test && npm run db:migrate:test",
 		"prepare": "husky"
 	},
 	"author": "",

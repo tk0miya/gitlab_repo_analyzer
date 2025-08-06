@@ -14,7 +14,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         jq \
         less \
         locales \
-        make
+        make \
+        postgresql-client
 
 # diff-highlightをインストール
 RUN cd /usr/share/doc/git/contrib/diff-highlight && make && install -m 755 diff-highlight /usr/bin
