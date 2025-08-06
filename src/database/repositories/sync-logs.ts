@@ -67,14 +67,14 @@ export class SyncLogsRepository {
 				.select()
 				.from(syncLogs)
 				.where(and(...conditions))
-				.orderBy(desc(syncLogs.created_at))
+				.orderBy(desc(syncLogs.created_at), desc(syncLogs.id))
 				.limit(limit)
 				.offset(offset);
 		} else {
 			return await db
 				.select()
 				.from(syncLogs)
-				.orderBy(desc(syncLogs.created_at))
+				.orderBy(desc(syncLogs.created_at), desc(syncLogs.id))
 				.limit(limit)
 				.offset(offset);
 		}
