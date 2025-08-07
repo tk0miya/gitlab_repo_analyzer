@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { buildProject } from "@/database/testing/factories/index";
+import { buildProject } from "@/lib/testing/factories";
 import { DeleteConfirmationDialog } from "../delete-confirmation-dialog";
 
 // Server Actionをモック

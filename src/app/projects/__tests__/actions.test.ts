@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createProject } from "@/database/testing/factories/index";
-import { withTransaction } from "@/database/testing/transaction";
 import {
 	GitLabApiClient,
 	type GitLabApiClient as GitLabApiClientType,
 } from "@/lib/gitlab_client";
+import { createProject } from "@/lib/testing/factories";
+import { withTransaction } from "@/lib/testing/transaction";
 import { deleteProject, getProjects, registerProject } from "../actions";
 
 // モック設定

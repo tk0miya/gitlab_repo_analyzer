@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { transaction } from "@/database/connection";
 import { projectsRepository } from "@/database/repositories";
-import { createProject } from "@/database/testing/factories/index";
-import { withTransaction } from "@/database/testing/transaction";
+import { createProject } from "@/lib/testing/factories";
+import { withTransaction } from "@/lib/testing/transaction";
 
 describe("withTransaction(): テスト用トランザクション", () => {
 	it("処理成功時にロールバックが発生すること", async () => {

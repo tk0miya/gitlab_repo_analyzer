@@ -4,14 +4,15 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { commitsRepository, syncLogsRepository } from "@/database/repositories";
-import { createProject, createSyncLog } from "@/database/testing/factories";
-import { withTransaction } from "@/database/testing/transaction";
 import { gitLabApiClient } from "@/lib/gitlab_client";
-import { SyncCommitsService } from "../sync-commits";
 import {
 	type buildGitLabCommit,
 	buildGitLabCommits,
-} from "./gitlab-commit-mock";
+	createProject,
+	createSyncLog,
+} from "@/lib/testing/factories";
+import { withTransaction } from "@/lib/testing/transaction";
+import { SyncCommitsService } from "../sync-commits";
 
 /**
  * コミット配列からページネーションされたジェネレータを作成するヘルパー関数

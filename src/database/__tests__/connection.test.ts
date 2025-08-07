@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getDb, transaction } from "@/database/connection";
 import { ProjectsRepository } from "@/database/repositories/projects";
-import { createProject } from "@/database/testing/factories/index";
-import { withTransaction } from "@/database/testing/transaction";
+import { createProject } from "@/lib/testing/factories";
+import { withTransaction } from "@/lib/testing/transaction";
 
 describe("connection.ts", () => {
 	describe("getDb()", () => {
