@@ -111,9 +111,17 @@ src/
 ├── database/     # データベース関連（スキーマ、マイグレーション、リポジトリ）
 │   ├── connection.ts  # DB接続管理
 │   ├── repositories/  # リポジトリパターン実装
-│   ├── schema/        # Drizzle ORMスキーマ定義
-│   └── testing/       # テスト用ファクトリ
+│   └── schema/        # Drizzle ORMスキーマ定義
 ├── lib/          # 共通ユーティリティ
+│   ├── gitlab_client/ # GitLab APIクライアントと型定義
+│   ├── testing/       # テスト用ユーティリティ
+│   │   ├── factories/  # テストデータファクトリ
+│   │   │   ├── database/      # DB用ファクトリ（projects, commits, sync-logs）
+│   │   │   ├── gitlab_client/ # GitLab API用ファクトリ（commits）
+│   │   │   └── index.ts       # 全ファクトリの統一エクスポート
+│   │   └── transaction.ts     # テスト用DBトランザクションヘルパー
+│   ├── validation/    # 検証スキーマ
+│   └── utils.ts       # 汎用ユーティリティ
 ├── services/     # ビジネスロジック（Web・CLI共通）
 ├── styles/       # グローバルスタイル
 └── types/        # 共通型定義

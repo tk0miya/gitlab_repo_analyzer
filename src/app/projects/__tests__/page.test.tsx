@@ -1,6 +1,6 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildProject } from "@/database/testing/factories";
+import { buildProject } from "@/lib/testing/factories";
 import ProjectsPage from "../page";
 
 // Server Actionをモック

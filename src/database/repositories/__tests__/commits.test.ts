@@ -6,8 +6,8 @@ import {
 	createCommit,
 	createCommits,
 	createProject,
-} from "@/database/testing/factories/index";
-import { withTransaction } from "@/database/testing/transaction";
+} from "@/lib/testing/factories";
+import { withTransaction } from "@/lib/testing/transaction";
 
 describe("Commits Repository", () => {
 	// ==================== CREATE操作 ====================

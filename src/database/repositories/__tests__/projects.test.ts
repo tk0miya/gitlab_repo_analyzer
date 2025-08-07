@@ -5,8 +5,8 @@ import {
 	buildNewProject,
 	createProject,
 	createProjects,
-} from "@/database/testing/factories/index";
-import { withTransaction } from "@/database/testing/transaction";
+} from "@/lib/testing/factories";
+import { withTransaction } from "@/lib/testing/transaction";
 
 describe("Projects Repository", () => {
 	describe("create", () => {
