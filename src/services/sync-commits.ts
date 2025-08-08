@@ -17,12 +17,6 @@ import { gitLabApiClient } from "@/lib/gitlab_client";
 import type { GitLabCommit } from "@/lib/gitlab_client/types/commit";
 
 /**
- * バッチサイズ定数
- * 中間保存の間隔（API呼び出し回数）
- */
-const BATCH_SIZE = 10;
-
-/**
  * コミット同期サービス
  */
 export class SyncCommitsService {
@@ -49,7 +43,6 @@ export class SyncCommitsService {
 
 	/**
 	 * 単一プロジェクトのコミット同期
-	 * トランザクションごとにcommitsGeneratorを作り直し、バッチサイズ分処理してSyncLogを記録
 	 */
 	private async syncProjectCommits(project: Project): Promise<void> {
 		// 最新の同期ログを取得（差分同期の基準日時を決定）
@@ -57,28 +50,22 @@ export class SyncCommitsService {
 			project.id,
 			SYNC_TYPES.COMMITS,
 		);
-		let sinceDate = latestSyncLog?.last_item_date;
+		const sinceDate = latestSyncLog?.last_item_date;
 
-		let hasMoreData = true;
-		while (hasMoreData) {
-			await transaction(async () => {
-				const result = await this.processBatchInTransaction(project, sinceDate);
-				hasMoreData = result.hasMoreData;
-				sinceDate = result.sinceDate;
-			});
-		}
+		await transaction(async () => {
+			await this.processBatchInTransaction(project, sinceDate);
+		});
 	}
 
 	/**
 	 * バッチ処理を実行（トランザクション内で呼び出される）
 	 * @param project プロジェクト情報
 	 * @param sinceDate 差分同期の基準日時
-	 * @returns 継続処理が必要かどうかと次回の基準日時
 	 */
 	private async processBatchInTransaction(
 		project: Project,
 		sinceDate?: Date,
-	): Promise<{ hasMoreData: boolean; sinceDate?: Date }> {
+	): Promise<void> {
 		// GitLab APIでコミット一覧を取得（新しいジェネレータを作成）
 		const commitsGenerator = gitLabApiClient.getCommits(
 			project.gitlab_id.toString(),
@@ -90,13 +77,9 @@ export class SyncCommitsService {
 			},
 		);
 
-		let processedPages = 0;
 		let lastItemDate = new Date(0); // 1970-01-01
 
-		// BATCH_SIZE分のページを処理
 		for await (const gitlabCommits of commitsGenerator) {
-			processedPages++;
-
 			// 1ページ分のコミットを保存
 			const commits = await this.saveCommits(project.id, gitlabCommits);
 
@@ -109,24 +92,16 @@ export class SyncCommitsService {
 
 			// レート制限を避けるため少し待機（GitLab API呼び出し間隔調整）
 			await setTimeout(200);
-
-			// BATCH_SIZE分処理したら中断
-			if (processedPages >= BATCH_SIZE) {
-				break;
-			}
 		}
 
-		// データがある場合はSyncLogを記録し、継続処理を示す
-		if (processedPages > 0) {
+		// データがある場合はSyncLogを記録
+		if (lastItemDate.getTime() > 0) {
 			await syncLogsRepository.create({
 				project_id: project.id,
 				sync_type: SYNC_TYPES.COMMITS,
 				last_item_date: lastItemDate,
 			});
-			return { hasMoreData: true, sinceDate: lastItemDate }; // 継続処理
 		}
-
-		return { hasMoreData: false, sinceDate }; // 処理完了
 	}
 
 	/**
