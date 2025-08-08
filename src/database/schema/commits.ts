@@ -38,7 +38,7 @@ export const commits = pgTable(
 		author_email: varchar("author_email", { length: 255 }).notNull(),
 
 		// 作者日時（GitLab上での authored_date）
-		author_date: timestamp("author_date").notNull(),
+		authored_date: timestamp("authored_date").notNull(),
 
 		// 追加行数（任意）
 		additions: integer("additions"),
@@ -63,7 +63,9 @@ export const commits = pgTable(
 		author_email_idx: index("commits_author_email_idx").on(table.author_email),
 
 		// 日付での検索用インデックス
-		author_date_idx: index("commits_author_date_idx").on(table.author_date),
+		authored_date_idx: index("commits_authored_date_idx").on(
+			table.authored_date,
+		),
 	}),
 );
 

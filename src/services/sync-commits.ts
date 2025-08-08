@@ -103,7 +103,7 @@ export class SyncCommitsService {
 			// 最新のコミット日時を更新
 			lastItemDate = commits.reduce(
 				(latest, commit) =>
-					commit.author_date > latest ? commit.author_date : latest,
+					commit.authored_date > latest ? commit.authored_date : latest,
 				lastItemDate,
 			);
 
@@ -179,7 +179,7 @@ export class SyncCommitsService {
 			message: gitlabCommit.message,
 			author_name: gitlabCommit.author_name,
 			author_email: gitlabCommit.author_email,
-			author_date: new Date(gitlabCommit.authored_date),
+			authored_date: new Date(gitlabCommit.authored_date),
 			additions: gitlabCommit.stats?.additions ?? null,
 			deletions: gitlabCommit.stats?.deletions ?? null,
 		};
