@@ -50,6 +50,13 @@
       "when": 1754245799489,
       "tag": "0006_real_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1754676585652,
+      "tag": "0007_parallel_talos",
+      "breakpoints": true
     }
   ]
 }

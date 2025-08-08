@@ -27,7 +27,7 @@ export function buildNewCommit(overrides: Partial<NewCommit> = {}): NewCommit {
 		message: `テストコミット ${uniqueId}`,
 		author_name: "テストユーザー",
 		author_email: "test@example.com",
-		author_date: new Date("2023-01-01T10:00:00Z"),
+		authored_date: new Date("2023-01-01T10:00:00Z"),
 		additions: 10,
 		deletions: 5,
 		...overrides,
@@ -53,8 +53,8 @@ export function buildCommit(overrides: Partial<Commit> = {}): Commit {
 		newCommitOverrides.author_name = overrides.author_name;
 	if (overrides.author_email !== undefined)
 		newCommitOverrides.author_email = overrides.author_email;
-	if (overrides.author_date !== undefined)
-		newCommitOverrides.author_date = overrides.author_date;
+	if (overrides.authored_date !== undefined)
+		newCommitOverrides.authored_date = overrides.authored_date;
 	if (overrides.additions !== undefined)
 		newCommitOverrides.additions = overrides.additions;
 	if (overrides.deletions !== undefined)

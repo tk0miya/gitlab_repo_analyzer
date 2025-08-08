@@ -87,7 +87,7 @@ export class CommitsRepository {
 			.select()
 			.from(commits)
 			.where(eq(commits.project_id, projectId))
-			.orderBy(desc(commits.author_date))
+			.orderBy(desc(commits.authored_date))
 			.limit(limit)
 			.offset(offset);
 	}
@@ -107,7 +107,7 @@ export class CommitsRepository {
 			.select()
 			.from(commits)
 			.where(inArray(commits.sha, shas))
-			.orderBy(desc(commits.author_date));
+			.orderBy(desc(commits.authored_date));
 	}
 
 	/**

@@ -28,7 +28,7 @@ describe("Commits Repository", () => {
 				expect(commit.message).toBe(testCommit.message);
 				expect(commit.author_name).toBe(testCommit.author_name);
 				expect(commit.author_email).toBe(testCommit.author_email);
-				expect(commit.author_date).toEqual(testCommit.author_date);
+				expect(commit.authored_date).toEqual(testCommit.authored_date);
 				expect(commit.additions).toBe(testCommit.additions);
 				expect(commit.deletions).toBe(testCommit.deletions);
 				expect(commit.created_at).toBeDefined();
@@ -164,9 +164,9 @@ describe("Commits Repository", () => {
 				expect(Array.isArray(commits)).toBe(true);
 				expect(commits.length).toBeGreaterThanOrEqual(5);
 
-				// author_date降順でソートされているかチェック
+				// authored_date降順でソートされているかチェック
 				for (let i = 1; i < commits.length; i++) {
-					expect(commits[i].author_date <= commits[i - 1].author_date).toBe(
+					expect(commits[i].authored_date <= commits[i - 1].authored_date).toBe(
 						true,
 					);
 				}
