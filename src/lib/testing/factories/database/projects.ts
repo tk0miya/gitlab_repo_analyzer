@@ -1,5 +1,9 @@
 import { ProjectsRepository } from "@/database/repositories/projects";
-import type { NewProject, Project } from "@/database/schema/projects";
+import type {
+	NewProject,
+	Project,
+	ProjectWithStats,
+} from "@/database/schema/projects";
 
 /**
  * プロジェクトテストデータファクトリ
@@ -91,6 +95,29 @@ export function buildProjects(
 		}
 		return buildProject(projectOverrides);
 	});
+}
+
+/**
+ * ProjectWithStatsオブジェクトを生成します（インメモリ）
+ * @param overrides - オーバーライドしたいフィールド
+ * @returns ProjectWithStats オブジェクト
+ */
+export function buildProjectWithStats(
+	overrides: Partial<ProjectWithStats> = {},
+): ProjectWithStats {
+	// ProjectWithStats固有のフィールドとProjectフィールドを分離
+	const { commitCount, lastCommitDate, ...projectOverrides } = overrides;
+
+	const baseProject = buildProject(projectOverrides);
+
+	return {
+		...baseProject,
+		commitCount: commitCount ?? 5,
+		lastCommitDate:
+			lastCommitDate === null
+				? null
+				: (lastCommitDate ?? new Date("2023-12-01T00:00:00Z")),
+	};
 }
 
 /**

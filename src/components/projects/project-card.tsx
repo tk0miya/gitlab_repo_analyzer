@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Project } from "@/database/schema/projects";
+import type { ProjectWithStats } from "@/database/schema/projects";
 import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 
 interface ProjectCardProps {
-	project: Project;
+	project: ProjectWithStats;
 }
 
 const visibilityConfig = {
@@ -40,31 +40,42 @@ export function ProjectCard({ project }: ProjectCardProps) {
 				)}
 
 				<div className="space-y-3">
-					<div className="flex items-center justify-between text-xs text-muted-foreground">
-						<span>ID: {project.gitlab_id}</span>
-						<Link
-							href={project.web_url}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
-						>
-							GitLab
-							<svg
-								className="w-3 h-3"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								role="img"
-								aria-label="外部リンク"
+					<div className="text-xs text-muted-foreground space-y-1">
+						<div className="flex items-center justify-between">
+							<span>ID: {project.gitlab_id}</span>
+							<Link
+								href={project.web_url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
 							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-								/>
-							</svg>
-						</Link>
+								GitLab
+								<svg
+									className="w-3 h-3"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									role="img"
+									aria-label="外部リンク"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+									/>
+								</svg>
+							</Link>
+						</div>
+						<div className="flex items-center justify-between">
+							<span>コミット数: {project.commitCount}</span>
+							<span>
+								最終更新:{" "}
+								{project.lastCommitDate
+									? new Date(project.lastCommitDate).toLocaleDateString("ja-JP")
+									: "未同期"}
+							</span>
+						</div>
 					</div>
 
 					<div className="flex justify-end">

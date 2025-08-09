@@ -23,6 +23,7 @@ export {
 	buildNewProject,
 	buildProject,
 	buildProjects,
+	buildProjectWithStats,
 	// create系（DB永続化）
 	createProject,
 	createProjects,

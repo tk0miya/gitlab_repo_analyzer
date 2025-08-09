@@ -5,18 +5,18 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Button } from "@/components/ui/button";
-import type { Project } from "@/database/schema/projects";
-import { getProjects } from "./actions";
+import type { ProjectWithStats } from "@/database/schema/projects";
+import { getProjectsWithStats } from "./actions";
 
 export default function ProjectsPage() {
-	const [projects, setProjects] = useState<Project[]>([]);
+	const [projects, setProjects] = useState<ProjectWithStats[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		async function fetchProjects() {
 			try {
-				const data = await getProjects();
+				const data = await getProjectsWithStats();
 				setProjects(data);
 			} catch (err) {
 				setError(
