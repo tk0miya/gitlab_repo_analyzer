@@ -1,10 +1,13 @@
-import { asc, count, eq } from "drizzle-orm";
+import { asc, count, eq, max } from "drizzle-orm";
 import { getDb } from "@/database/connection";
+import { commits } from "@/database/schema/commits";
 import {
 	type NewProject,
 	type Project,
+	type ProjectWithStats,
 	projects,
 } from "@/database/schema/projects";
+import { syncLogs } from "@/database/schema/sync-logs";
 
 /**
  * プロジェクト操作のリポジトリクラス
@@ -64,6 +67,59 @@ export class ProjectsRepository {
 		return await db
 			.select()
 			.from(projects)
+			.orderBy(asc(projects.name))
+			.limit(limit)
+			.offset(offset);
+	}
+
+	/**
+	 * 統計情報付きプロジェクト一覧を取得（ページネーション対応）
+	 * コミット数と最終コミット同期日を含む
+	 * @param limit 取得件数制限（デフォルト: 100）
+	 * @param offset オフセット（デフォルト: 0）
+	 * @returns 統計情報付きプロジェクト配列（name昇順でソート）
+	 */
+	async findAllWithStats(
+		limit: number = 100,
+		offset: number = 0,
+	): Promise<ProjectWithStats[]> {
+		const db = await getDb();
+
+		// 最新のコミット同期ログサブクエリ
+		const latestCommitSyncLogs = db
+			.select({
+				project_id: syncLogs.project_id,
+				last_item_date: max(syncLogs.last_item_date).as("last_item_date"),
+			})
+			.from(syncLogs)
+			.where(eq(syncLogs.sync_type, "commits"))
+			.groupBy(syncLogs.project_id)
+			.as("latest_sync");
+
+		return await db
+			.select({
+				// プロジェクト基本情報
+				id: projects.id,
+				gitlab_id: projects.gitlab_id,
+				name: projects.name,
+				description: projects.description,
+				web_url: projects.web_url,
+				default_branch: projects.default_branch,
+				visibility: projects.visibility,
+				created_at: projects.created_at,
+				gitlab_created_at: projects.gitlab_created_at,
+
+				// 統計情報
+				commitCount: count(commits.id),
+				lastCommitDate: latestCommitSyncLogs.last_item_date,
+			})
+			.from(projects)
+			.leftJoin(commits, eq(projects.id, commits.project_id))
+			.leftJoin(
+				latestCommitSyncLogs,
+				eq(projects.id, latestCommitSyncLogs.project_id),
+			)
+			.groupBy(projects.id, latestCommitSyncLogs.last_item_date)
 			.orderBy(asc(projects.name))
 			.limit(limit)
 			.offset(offset);

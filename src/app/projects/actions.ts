@@ -4,20 +4,21 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { projectsRepository } from "@/database/index";
-import type { Project } from "@/database/schema/projects";
+import type { ProjectWithStats } from "@/database/schema/projects";
 import { GitLabApiClient } from "@/lib/gitlab_client";
 import { projectRegistrationSchema } from "@/lib/validation/project-schemas";
 
 /**
- * プロジェクト一覧を取得するServer Action
- * @returns プロジェクト配列
+ * 統計情報付きプロジェクト一覧を取得するServer Action
+ * コミット数と最終コミット同期日を含む
+ * @returns 統計情報付きプロジェクト配列
  */
-export async function getProjects(): Promise<Project[]> {
+export async function getProjectsWithStats(): Promise<ProjectWithStats[]> {
 	try {
-		return await projectsRepository.findAll();
+		return await projectsRepository.findAllWithStats();
 	} catch (error) {
-		console.error("プロジェクト一覧の取得に失敗しました:", error);
-		throw new Error("プロジェクト一覧の取得に失敗しました");
+		console.error("プロジェクト統計情報の取得に失敗しました:", error);
+		throw new Error("プロジェクト統計情報の取得に失敗しました");
 	}
 }
 

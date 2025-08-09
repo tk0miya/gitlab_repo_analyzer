@@ -59,3 +59,12 @@ export const projects = pgTable(
  */
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
+
+/**
+ * 統計情報付きプロジェクト型
+ * コミット数と最終更新日を含む
+ */
+export type ProjectWithStats = Project & {
+	commitCount: number;
+	lastCommitDate: Date | null;
+};

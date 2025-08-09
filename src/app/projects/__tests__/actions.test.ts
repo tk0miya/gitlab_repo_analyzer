@@ -6,7 +6,11 @@ import {
 } from "@/lib/gitlab_client";
 import { createProject } from "@/lib/testing/factories";
 import { withTransaction } from "@/lib/testing/transaction";
-import { deleteProject, getProjects, registerProject } from "../actions";
+import {
+	deleteProject,
+	getProjectsWithStats,
+	registerProject,
+} from "../actions";
 
 // モック設定
 vi.mock("next/navigation", () => ({
@@ -19,48 +23,51 @@ const mockGitLabApiClient = vi.mocked(GitLabApiClient);
 const mockRedirect = vi.mocked(redirect);
 
 describe("actions.tsx", () => {
-	describe("getProjects", () => {
+	describe("getProjectsWithStats", () => {
 		afterEach(() => {
 			// すべてのモックを自動復元
 			vi.restoreAllMocks();
 		});
 
-		it("プロジェクト一覧を正常に取得できる", async () => {
+		it("統計情報付きプロジェクト一覧を正常に取得できる", async () => {
 			await withTransaction(async () => {
 				// テストデータを作成
 				await createProject({ name: "プロジェクトA" });
 				await createProject({ name: "プロジェクトB" });
 
 				// Server Actionを実行
-				const result = await getProjects();
+				const result = await getProjectsWithStats();
 
-				// プロジェクトが取得できることを確認
+				// プロジェクトが取得できることを確認（統計情報付き）
 				expect(result).toHaveLength(2);
 				expect(result.map((p) => p.name)).toEqual([
 					"プロジェクトA",
 					"プロジェクトB",
 				]);
+				// 統計情報が含まれていることを確認（値の妥当性チェック）
+				expect(result[0].commitCount).toBeGreaterThanOrEqual(0);
+				expect(result[0].lastCommitDate).toBeNull(); // 新規作成プロジェクトはまだ同期されていない
 			});
 		});
 
 		it("データベースエラー時に適切なエラーを投げる", async () => {
-			// projectsRepositoryのfindAllメソッドを直接モック
+			// projectsRepositoryのfindAllWithStatsメソッドを直接モック
 			const { projectsRepository } = await import("@/database/index");
-			const originalFindAll = projectsRepository.findAll;
+			const originalFindAllWithStats = projectsRepository.findAllWithStats;
 
 			// 一時的にエラーを投げるようにモック
-			projectsRepository.findAll = vi
+			projectsRepository.findAllWithStats = vi
 				.fn()
 				.mockRejectedValue(new Error("Database connection failed"));
 
 			try {
 				// エラーが適切に投げられることを確認
-				await expect(getProjects()).rejects.toThrow(
-					"プロジェクト一覧の取得に失敗しました",
+				await expect(getProjectsWithStats()).rejects.toThrow(
+					"プロジェクト統計情報の取得に失敗しました",
 				);
 			} finally {
 				// 元のメソッドに戻す
-				projectsRepository.findAll = originalFindAll;
+				projectsRepository.findAllWithStats = originalFindAllWithStats;
 			}
 		});
 	});

@@ -1,11 +1,11 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildProject } from "@/lib/testing/factories";
+import { buildProjectWithStats } from "@/lib/testing/factories";
 import ProjectsPage from "../page";
 
 // Server Actionをモック
 vi.mock("../actions", () => ({
-	getProjects: vi.fn(),
+	getProjectsWithStats: vi.fn(),
 	registerProject: vi.fn(),
 	deleteProject: vi.fn(),
 }));
@@ -20,7 +20,7 @@ describe("ProjectsPage", () => {
 	});
 
 	it("プロジェクト一覧ページのヘッダーが正しく表示される", async () => {
-		vi.mocked(actions.getProjects).mockResolvedValue([]);
+		vi.mocked(actions.getProjectsWithStats).mockResolvedValue([]);
 
 		render(<ProjectsPage />);
 
@@ -35,7 +35,7 @@ describe("ProjectsPage", () => {
 	});
 
 	it("プロジェクトが存在しない場合に空状態メッセージが表示される", async () => {
-		vi.mocked(actions.getProjects).mockResolvedValue([]);
+		vi.mocked(actions.getProjectsWithStats).mockResolvedValue([]);
 
 		render(<ProjectsPage />);
 
@@ -61,15 +61,17 @@ describe("ProjectsPage", () => {
 
 	it("プロジェクトが存在する場合に正しく表示される", async () => {
 		// テストデータを作成
-		const project = buildProject({
+		const project = buildProjectWithStats({
 			name: "テストプロジェクト",
 			description: "プロジェクトの説明",
 			gitlab_id: 12345,
 			visibility: "private",
 			web_url: "https://gitlab.com/test/project",
+			commitCount: 25,
+			lastCommitDate: new Date("2024-01-15T00:00:00Z"),
 		});
 
-		vi.mocked(actions.getProjects).mockResolvedValue([project]);
+		vi.mocked(actions.getProjectsWithStats).mockResolvedValue([project]);
 
 		render(<ProjectsPage />);
 
@@ -85,6 +87,10 @@ describe("ProjectsPage", () => {
 		expect(screen.getByText("プロジェクトの説明")).toBeInTheDocument();
 		expect(screen.getByText("ID: 12345")).toBeInTheDocument();
 		expect(screen.getByText("プライベート")).toBeInTheDocument();
+
+		// 統計情報が表示される
+		expect(screen.getByText("コミット数: 25")).toBeInTheDocument();
+		expect(screen.getByText("最終更新: 2024/1/15")).toBeInTheDocument();
 
 		// GitLabリンクが正しく設定されている
 		const gitlabLink = screen.getByRole("link", { name: /GitLab/i });
@@ -103,11 +109,11 @@ describe("ProjectsPage", () => {
 
 	it("複数のプロジェクトが表示される", async () => {
 		// 複数のテストデータを作成
-		const projectA = buildProject({ name: "プロジェクトA" });
-		const projectB = buildProject({ name: "プロジェクトB" });
-		const projectC = buildProject({ name: "プロジェクトC" });
+		const projectA = buildProjectWithStats({ name: "プロジェクトA" });
+		const projectB = buildProjectWithStats({ name: "プロジェクトB" });
+		const projectC = buildProjectWithStats({ name: "プロジェクトC" });
 
-		vi.mocked(actions.getProjects).mockResolvedValue([
+		vi.mocked(actions.getProjectsWithStats).mockResolvedValue([
 			projectA,
 			projectB,
 			projectC,
@@ -129,7 +135,7 @@ describe("ProjectsPage", () => {
 	});
 
 	it("エラーが発生した場合にエラーメッセージが表示される", async () => {
-		vi.mocked(actions.getProjects).mockRejectedValue(
+		vi.mocked(actions.getProjectsWithStats).mockRejectedValue(
 			new Error("データ取得エラー"),
 		);
 
