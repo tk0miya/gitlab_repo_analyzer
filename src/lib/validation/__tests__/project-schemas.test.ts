@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ZodIssue } from "zod";
 import { projectRegistrationSchema } from "../project-schemas";
 
 describe("projectRegistrationSchema", () => {
@@ -7,7 +8,7 @@ describe("projectRegistrationSchema", () => {
 			const result = projectRegistrationSchema.safeParse({ url: "" });
 			expect(result.success).toBe(false);
 			if (!result.success) {
-				expect(result.error.errors[0].message).toBe("URLは必須です");
+				expect(result.error.issues[0].message).toBe("URLは必須です");
 			}
 		});
 
@@ -18,8 +19,8 @@ describe("projectRegistrationSchema", () => {
 			expect(result.success).toBe(false);
 			if (!result.success) {
 				expect(
-					result.error.errors.some(
-						(e) => e.message === "有効なURLを入力してください",
+					result.error.issues.some(
+						(e: ZodIssue) => e.message === "有効なURLを入力してください",
 					),
 				).toBe(true);
 			}
@@ -31,8 +32,8 @@ describe("projectRegistrationSchema", () => {
 			expect(result.success).toBe(false);
 			if (!result.success) {
 				expect(
-					result.error.errors.some(
-						(e) => e.message === "URLは500文字以内で入力してください",
+					result.error.issues.some(
+						(e: ZodIssue) => e.message === "URLは500文字以内で入力してください",
 					),
 				).toBe(true);
 			}
@@ -50,8 +51,8 @@ describe("projectRegistrationSchema", () => {
 				expect(result.success).toBe(false);
 				if (!result.success) {
 					expect(
-						result.error.errors.some(
-							(e) =>
+						result.error.issues.some(
+							(e: ZodIssue) =>
 								e.message === "GitLabプロジェクトの有効なURLを入力してください",
 						),
 					).toBe(true);

@@ -39,10 +39,7 @@ export const ProjectCreateSchema = z.object({
 
 	// 可視性設定（必須、指定された値のみ）
 	visibility: z.enum(["public", "internal", "private"], {
-		errorMap: () => ({
-			message:
-				"可視性はpublic、internal、privateのいずれかである必要があります",
-		}),
+		error: "可視性はpublic、internal、privateのいずれかである必要があります",
 	}),
 
 	// GitLab上での作成日時（必須、ISO 8601形式の日時文字列）
@@ -89,10 +86,7 @@ export const ProjectUpdateSchema = z.object({
 	// 可視性設定（任意、指定された値のみ）
 	visibility: z
 		.enum(["public", "internal", "private"], {
-			errorMap: () => ({
-				message:
-					"可視性はpublic、internal、privateのいずれかである必要があります",
-			}),
+			error: "可視性はpublic、internal、privateのいずれかである必要があります",
 		})
 		.optional(),
 

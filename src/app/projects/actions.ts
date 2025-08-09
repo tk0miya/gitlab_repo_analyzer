@@ -116,7 +116,7 @@ export async function registerProject(
 		if (error instanceof z.ZodError) {
 			return {
 				success: false,
-				error: error.errors[0]?.message || "入力データが無効です",
+				error: error.issues[0]?.message || "入力データが無効です",
 			};
 		}
 
