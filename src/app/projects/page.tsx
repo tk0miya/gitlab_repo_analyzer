@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Button } from "@/components/ui/button";
 import type { ProjectWithStats } from "@/database/schema/projects";
@@ -13,23 +13,24 @@ export default function ProjectsPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	useEffect(() => {
-		async function fetchProjects() {
-			try {
-				const data = await getProjectsWithStats();
-				setProjects(data);
-			} catch (err) {
-				setError(
-					err instanceof Error
-						? err.message
-						: "プロジェクトの取得に失敗しました",
-				);
-			} finally {
-				setLoading(false);
-			}
+	const fetchProjects = useCallback(async () => {
+		try {
+			setLoading(true);
+			const data = await getProjectsWithStats();
+			setProjects(data);
+			setError(null);
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : "プロジェクトの取得に失敗しました",
+			);
+		} finally {
+			setLoading(false);
 		}
-		fetchProjects();
 	}, []);
+
+	useEffect(() => {
+		fetchProjects();
+	}, [fetchProjects]);
 
 	return (
 		<div className="py-8 px-4 max-w-7xl mx-auto">
@@ -92,7 +93,11 @@ export default function ProjectsPage() {
 			) : (
 				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 					{projects.map((project) => (
-						<ProjectCard key={project.id} project={project} />
+						<ProjectCard
+							key={project.id}
+							project={project}
+							onProjectsChange={fetchProjects}
+						/>
 					))}
 				</div>
 			)}

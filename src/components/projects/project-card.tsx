@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +8,7 @@ import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 
 interface ProjectCardProps {
 	project: ProjectWithStats;
+	onProjectsChange?: () => void;
 }
 
 const visibilityConfig = {
@@ -14,7 +17,7 @@ const visibilityConfig = {
 	private: { label: "プライベート", variant: "destructive" as const },
 };
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, onProjectsChange }: ProjectCardProps) {
 	const visibilityInfo = visibilityConfig[
 		project.visibility as keyof typeof visibilityConfig
 	] || {
@@ -79,7 +82,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
 					</div>
 
 					<div className="flex justify-end">
-						<DeleteConfirmationDialog project={project} />
+						<DeleteConfirmationDialog
+							project={project}
+							onDeleteSuccess={onProjectsChange}
+						/>
 					</div>
 				</div>
 			</CardContent>
