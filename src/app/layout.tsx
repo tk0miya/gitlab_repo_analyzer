@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="ja">
-			<body>
+			<body suppressHydrationWarning>
 				<GlobalNav />
 				<main>{children}</main>
 			</body>
