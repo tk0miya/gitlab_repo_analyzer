@@ -2,7 +2,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { notFound } from "next/navigation";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { buildProjectWithStats } from "@/lib/testing/factories";
-import { getMonthlyCommitCounts, getProjectDetail } from "../../actions";
+import {
+	getMonthlyCommitStats,
+	getProjectDetail,
+	getWeeklyCommitStats,
+} from "../../actions";
 import ProjectDetailPage from "../page";
 
 // ResizeObserverのモック（Rechartsで必要）
@@ -23,7 +27,8 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("../../actions", () => ({
 	getProjectDetail: vi.fn(),
-	getMonthlyCommitCounts: vi.fn(),
+	getMonthlyCommitStats: vi.fn(),
+	getWeeklyCommitStats: vi.fn(),
 }));
 
 const mockProject = buildProjectWithStats({
@@ -39,8 +44,13 @@ const mockProject = buildProjectWithStats({
 });
 
 const mockMonthlyData = [
-	{ month: "2024-01", count: 10 },
-	{ month: "2024-02", count: 15 },
+	{ period: "2024-01", count: 10, type: "monthly" as const },
+	{ period: "2024-02", count: 15, type: "monthly" as const },
+];
+
+const mockWeeklyData = [
+	{ period: "2024-01", count: 3, type: "weekly" as const },
+	{ period: "2024-02", count: 5, type: "weekly" as const },
 ];
 
 describe("ProjectDetailPage", () => {
@@ -48,7 +58,10 @@ describe("ProjectDetailPage", () => {
 		vi.mocked(getProjectDetail).mockImplementation(
 			() => new Promise(() => {}), // 永続的にpending
 		);
-		vi.mocked(getMonthlyCommitCounts).mockImplementation(
+		vi.mocked(getMonthlyCommitStats).mockImplementation(
+			() => new Promise(() => {}),
+		);
+		vi.mocked(getWeeklyCommitStats).mockImplementation(
 			() => new Promise(() => {}),
 		);
 
@@ -62,7 +75,8 @@ describe("ProjectDetailPage", () => {
 
 	it("should display project details when data is loaded", async () => {
 		vi.mocked(getProjectDetail).mockResolvedValue(mockProject);
-		vi.mocked(getMonthlyCommitCounts).mockResolvedValue(mockMonthlyData);
+		vi.mocked(getMonthlyCommitStats).mockResolvedValue(mockMonthlyData);
+		vi.mocked(getWeeklyCommitStats).mockResolvedValue(mockWeeklyData);
 
 		render(<ProjectDetailPage params={{ id: "1" }} />);
 
@@ -99,7 +113,8 @@ describe("ProjectDetailPage", () => {
 		vi.mocked(getProjectDetail).mockRejectedValue(
 			new Error("データ取得エラー"),
 		);
-		vi.mocked(getMonthlyCommitCounts).mockResolvedValue([]);
+		vi.mocked(getMonthlyCommitStats).mockResolvedValue([]);
+		vi.mocked(getWeeklyCommitStats).mockResolvedValue(mockWeeklyData);
 
 		render(<ProjectDetailPage params={{ id: "1" }} />);
 
@@ -114,7 +129,8 @@ describe("ProjectDetailPage", () => {
 
 	it("should call notFound when project is not found", async () => {
 		vi.mocked(getProjectDetail).mockResolvedValue(null);
-		vi.mocked(getMonthlyCommitCounts).mockResolvedValue([]);
+		vi.mocked(getMonthlyCommitStats).mockResolvedValue([]);
+		vi.mocked(getWeeklyCommitStats).mockResolvedValue(mockWeeklyData);
 
 		render(<ProjectDetailPage params={{ id: "1" }} />);
 
@@ -135,7 +151,8 @@ describe("ProjectDetailPage", () => {
 			lastCommitDate: null,
 		};
 		vi.mocked(getProjectDetail).mockResolvedValue(projectWithoutSync);
-		vi.mocked(getMonthlyCommitCounts).mockResolvedValue([]);
+		vi.mocked(getMonthlyCommitStats).mockResolvedValue([]);
+		vi.mocked(getWeeklyCommitStats).mockResolvedValue(mockWeeklyData);
 
 		render(<ProjectDetailPage params={{ id: "1" }} />);
 

@@ -26,20 +26,20 @@ afterEach(() => {
 
 describe("CommitGraph", () => {
 	const mockData = [
-		{ month: "2024-01", count: 15 },
-		{ month: "2024-02", count: 23 },
-		{ month: "2024-03", count: 8 },
+		{ period: "2024-01", count: 15, type: "monthly" as const },
+		{ period: "2024-02", count: 23, type: "monthly" as const },
+		{ period: "2024-03", count: 8, type: "monthly" as const },
 	];
 
 	it("should render chart when data is provided", () => {
-		render(<CommitGraph data={mockData} />);
+		render(<CommitGraph data={mockData} period="monthly" />);
 
 		const container = document.querySelector(".recharts-responsive-container");
 		expect(container).toBeInTheDocument();
 	});
 
 	it("should display no data message when data is empty", () => {
-		render(<CommitGraph data={[]} />);
+		render(<CommitGraph data={[]} period="monthly" />);
 
 		expect(screen.getByText("コミットデータがありません")).toBeInTheDocument();
 	});

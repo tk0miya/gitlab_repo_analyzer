@@ -7,11 +7,31 @@ import {
 } from "@/database/schema/commits";
 
 /**
- * 月別コミット数データの型定義
+ * 統計データの期間タイプ
  */
-export interface MonthlyCommitData {
-	month: string;
+export type AnalysisPeriod = "monthly" | "weekly";
+
+/**
+ * 共通統計データの型定義
+ */
+export interface CommitStats {
+	period: string;
 	count: number;
+	type: AnalysisPeriod;
+}
+
+/**
+ * 月別コミット数データ (discriminated union)
+ */
+export interface MonthlyCommitStats extends Omit<CommitStats, "type"> {
+	type: "monthly";
+}
+
+/**
+ * 週別コミット数データ (discriminated union)
+ */
+export interface WeeklyCommitStats extends Omit<CommitStats, "type"> {
+	type: "weekly";
 }
 
 /**
@@ -137,15 +157,15 @@ export class CommitsRepository {
 	 * @param projectId プロジェクトID
 	 * @returns 月別コミット数の配列
 	 */
-	async getMonthlyCommitCounts(
+	async getMonthlyCommitStats(
 		projectId: number,
-	): Promise<MonthlyCommitData[]> {
+	): Promise<MonthlyCommitStats[]> {
 		const db = await getDb();
 
 		const results = await db
 			.select({
-				month: sql<string>`TO_CHAR(${commits.authored_date}, 'YYYY-MM')`.as(
-					"month",
+				period: sql<string>`TO_CHAR(${commits.authored_date}, 'YYYY-MM')`.as(
+					"period",
 				),
 				count: count().as("count"),
 			})
@@ -155,8 +175,45 @@ export class CommitsRepository {
 			.orderBy(sql`TO_CHAR(${commits.authored_date}, 'YYYY-MM')`);
 
 		return results.map((row) => ({
-			month: row.month,
+			period: row.period,
 			count: Number(row.count),
+			type: "monthly" as const,
+		}));
+	}
+
+	/**
+	 * プロジェクトの週別コミット数を取得（直近2年間）
+	 * @param projectId プロジェクトID
+	 * @returns 週別コミット数の配列
+	 */
+	async getWeeklyCommitStats(projectId: number): Promise<WeeklyCommitStats[]> {
+		const db = await getDb();
+
+		// 直近2年間のデータを取得
+		const twoYearsAgo = new Date();
+		twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+
+		const results = await db
+			.select({
+				period: sql<string>`TO_CHAR(${commits.authored_date}, 'IYYY-IW')`.as(
+					"period",
+				),
+				count: count().as("count"),
+			})
+			.from(commits)
+			.where(
+				and(
+					eq(commits.project_id, projectId),
+					sql`${commits.authored_date} >= ${twoYearsAgo}`,
+				),
+			)
+			.groupBy(sql`TO_CHAR(${commits.authored_date}, 'IYYY-IW')`)
+			.orderBy(sql`TO_CHAR(${commits.authored_date}, 'IYYY-IW')`);
+
+		return results.map((row) => ({
+			period: row.period,
+			count: Number(row.count),
+			type: "weekly" as const,
 		}));
 	}
 

@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { commitsRepository, projectsRepository } from "@/database/index";
-import type { MonthlyCommitData } from "@/database/repositories/commits";
+import type {
+	MonthlyCommitStats,
+	WeeklyCommitStats,
+} from "@/database/repositories/commits";
 import type { ProjectWithStats } from "@/database/schema/projects";
 import { GitLabApiClient } from "@/lib/gitlab_client";
 import { projectRegistrationSchema } from "@/lib/validation/project-schemas";
@@ -40,18 +43,34 @@ export async function getProjectDetail(
 }
 
 /**
- * プロジェクトの月別コミット数を取得するServer Action
+ * プロジェクトの月別コミット統計を取得するServer Action
  * @param projectId プロジェクトID
- * @returns 月別コミット数の配列
+ * @returns 月別コミット統計の配列
  */
-export async function getMonthlyCommitCounts(
+export async function getMonthlyCommitStats(
 	projectId: number,
-): Promise<MonthlyCommitData[]> {
+): Promise<MonthlyCommitStats[]> {
 	try {
-		return await commitsRepository.getMonthlyCommitCounts(projectId);
+		return await commitsRepository.getMonthlyCommitStats(projectId);
 	} catch (error) {
-		console.error("月別コミット数の取得に失敗しました:", error);
-		throw new Error("月別コミット数の取得に失敗しました");
+		console.error("月別コミット統計の取得に失敗しました:", error);
+		throw new Error("月別コミット統計の取得に失敗しました");
+	}
+}
+
+/**
+ * プロジェクトの週別コミット統計を取得するServer Action（直近2年間）
+ * @param projectId プロジェクトID
+ * @returns 週別コミット統計の配列
+ */
+export async function getWeeklyCommitStats(
+	projectId: number,
+): Promise<WeeklyCommitStats[]> {
+	try {
+		return await commitsRepository.getWeeklyCommitStats(projectId);
+	} catch (error) {
+		console.error("週別コミット統計の取得に失敗しました:", error);
+		throw new Error("週別コミット統計の取得に失敗しました");
 	}
 }
 
