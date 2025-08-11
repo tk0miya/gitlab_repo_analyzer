@@ -5,15 +5,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CommitAnalysisCard } from "@/components/commits/commit-analysis-card";
+import { CommitterRankingCard } from "@/components/commits/committer-ranking-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProjectVisibilityBadge } from "@/components/ui/project-visibility-badge";
 import type {
 	AnalysisPeriod,
 	CommitStats,
+	CommitterRanking,
+	RankingPeriod,
 } from "@/database/repositories/commits";
 import type { ProjectWithStats } from "@/database/schema/projects";
 import {
+	getCommitterRanking,
 	getMonthlyCommitStats,
 	getProjectDetail,
 	getWeeklyCommitStats,
@@ -29,6 +33,14 @@ export default function ProjectDetailPage({ params }: PageProps) {
 	const [weeklyStats, setWeeklyStats] = useState<CommitStats[]>([]);
 	const [analysisPeriod, setAnalysisPeriod] =
 		useState<AnalysisPeriod>("monthly");
+	const [rankings, setRankings] = useState<
+		Record<RankingPeriod, CommitterRanking[]>
+	>({
+		all: [],
+		year: [],
+		halfYear: [],
+		month: [],
+	});
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +63,10 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
 				setProject(projectData);
 				setError(null);
+
+				// 全期間のランキングを初期ロード
+				const allRankings = await getCommitterRanking(projectId, "all");
+				setRankings((prev) => ({ ...prev, all: allRankings }));
 			} catch (err) {
 				setError(
 					err instanceof Error ? err.message : "データの取得に失敗しました",
@@ -87,6 +103,19 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
 		fetchCommitStats();
 	}, [projectId, analysisPeriod, monthlyStats?.length, weeklyStats?.length]);
+
+	// ランキング期間変更時のデータ取得
+	const handleRankingPeriodChange = async (period: RankingPeriod) => {
+		try {
+			// まだロードしていない期間のデータのみ取得
+			if (rankings[period].length === 0) {
+				const rankingData = await getCommitterRanking(projectId, period);
+				setRankings((prev) => ({ ...prev, [period]: rankingData }));
+			}
+		} catch (err) {
+			console.error("ランキングデータの取得に失敗しました:", err);
+		}
+	};
 
 	// 現在選択されているperiodのデータを取得
 	const commitStats = analysisPeriod === "monthly" ? monthlyStats : weeklyStats;
@@ -175,38 +204,49 @@ export default function ProjectDetailPage({ params }: PageProps) {
 				</div>
 			</header>
 
-			<div className="grid gap-6 lg:grid-cols-3">
-				{/* 統計情報サマリー */}
-				<div className="lg:col-span-1">
-					<Card>
-						<CardHeader>
-							<CardTitle>統計情報</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-4">
-							<div className="flex justify-between">
-								<span>総コミット数</span>
-								<span className="font-semibold">{project.commitCount}</span>
-							</div>
-							<div className="flex justify-between">
-								<span>最終更新</span>
-								<span className="font-semibold">
-									{project.lastCommitDate
-										? new Date(project.lastCommitDate).toLocaleDateString(
-												"ja-JP",
-											)
-										: "未同期"}
-								</span>
-							</div>
-						</CardContent>
-					</Card>
+			<div className="space-y-6">
+				{/* 統計情報とコミット分析 */}
+				<div className="grid gap-6 lg:grid-cols-3">
+					{/* 統計情報サマリー */}
+					<div className="lg:col-span-1">
+						<Card>
+							<CardHeader>
+								<CardTitle>統計情報</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<div className="flex justify-between">
+									<span>総コミット数</span>
+									<span className="font-semibold">{project.commitCount}</span>
+								</div>
+								<div className="flex justify-between">
+									<span>最終更新</span>
+									<span className="font-semibold">
+										{project.lastCommitDate
+											? new Date(project.lastCommitDate).toLocaleDateString(
+													"ja-JP",
+												)
+											: "未同期"}
+									</span>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+
+					{/* コミット分析 */}
+					<div className="lg:col-span-2">
+						<CommitAnalysisCard
+							period={analysisPeriod}
+							commitStats={commitStats}
+							onPeriodChange={setAnalysisPeriod}
+						/>
+					</div>
 				</div>
 
-				{/* コミット分析 */}
-				<div className="lg:col-span-2">
-					<CommitAnalysisCard
-						period={analysisPeriod}
-						commitStats={commitStats}
-						onPeriodChange={setAnalysisPeriod}
+				{/* コミッターランキング */}
+				<div>
+					<CommitterRankingCard
+						rankings={rankings}
+						onPeriodChange={handleRankingPeriodChange}
 					/>
 				</div>
 			</div>
