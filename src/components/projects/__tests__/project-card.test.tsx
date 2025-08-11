@@ -31,6 +31,8 @@ describe("ProjectCard Component", () => {
 			screen.getByText("これはテスト用のプロジェクト説明です"),
 		).toBeInTheDocument();
 		expect(screen.getByText("ID: 123")).toBeInTheDocument();
+
+		// ProjectVisibilityBadgeコンポーネントが表示されることを確認
 		expect(screen.getByText("パブリック")).toBeInTheDocument();
 
 		// コミット統計情報
@@ -50,36 +52,6 @@ describe("ProjectCard Component", () => {
 		// 外部リンクアイコン
 		const svgIcon = gitlabLink.querySelector("svg");
 		expect(svgIcon).toBeInTheDocument();
-	});
-
-	it("should display correct visibility badge for private project", () => {
-		const privateProject = buildProjectWithStats({
-			visibility: "private",
-		});
-		render(<ProjectCard project={privateProject} />);
-
-		const badge = screen.getByText("プライベート");
-		expect(badge).toBeInTheDocument();
-	});
-
-	it("should display correct visibility badge for internal project", () => {
-		const internalProject = buildProjectWithStats({
-			visibility: "internal",
-		});
-		render(<ProjectCard project={internalProject} />);
-
-		const badge = screen.getByText("内部");
-		expect(badge).toBeInTheDocument();
-	});
-
-	it("should handle unknown visibility with fallback", () => {
-		const unknownVisibilityProject = buildProjectWithStats({
-			visibility: "unknown",
-		});
-		render(<ProjectCard project={unknownVisibilityProject} />);
-
-		const badge = screen.getByText("unknown");
-		expect(badge).toBeInTheDocument();
 	});
 
 	it("should handle project without description", () => {

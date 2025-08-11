@@ -1,10 +1,18 @@
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/database/connection";
 import {
 	type Commit,
 	commits,
 	type NewCommit,
 } from "@/database/schema/commits";
+
+/**
+ * 月別コミット数データの型定義
+ */
+export interface MonthlyCommitData {
+	month: string;
+	count: number;
+}
 
 /**
  * コミット操作のリポジトリクラス
@@ -122,6 +130,34 @@ export class CommitsRepository {
 			.from(commits)
 			.where(eq(commits.project_id, projectId));
 		return Number(result?.count || 0);
+	}
+
+	/**
+	 * プロジェクトの月別コミット数を取得
+	 * @param projectId プロジェクトID
+	 * @returns 月別コミット数の配列
+	 */
+	async getMonthlyCommitCounts(
+		projectId: number,
+	): Promise<MonthlyCommitData[]> {
+		const db = await getDb();
+
+		const results = await db
+			.select({
+				month: sql<string>`TO_CHAR(${commits.authored_date}, 'YYYY-MM')`.as(
+					"month",
+				),
+				count: count().as("count"),
+			})
+			.from(commits)
+			.where(eq(commits.project_id, projectId))
+			.groupBy(sql`TO_CHAR(${commits.authored_date}, 'YYYY-MM')`)
+			.orderBy(sql`TO_CHAR(${commits.authored_date}, 'YYYY-MM')`);
+
+		return results.map((row) => ({
+			month: row.month,
+			count: Number(row.count),
+		}));
 	}
 
 	// ==================== DELETE操作 ====================

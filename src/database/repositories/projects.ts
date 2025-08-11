@@ -57,6 +57,55 @@ export class ProjectsRepository {
 	}
 
 	/**
+	 * 統計情報付きプロジェクトを内部IDで取得
+	 * コミット数と最終コミット同期日を含む
+	 * @param id 内部ID
+	 * @returns 統計情報付きプロジェクト情報（見つからない場合はnull）
+	 */
+	async findWithStats(id: number): Promise<ProjectWithStats | null> {
+		const db = await getDb();
+
+		// 最新のコミット同期ログサブクエリ
+		const latestCommitSyncLogs = db
+			.select({
+				project_id: syncLogs.project_id,
+				last_item_date: max(syncLogs.last_item_date).as("last_item_date"),
+			})
+			.from(syncLogs)
+			.where(eq(syncLogs.sync_type, "commits"))
+			.groupBy(syncLogs.project_id)
+			.as("latest_sync");
+
+		const [result] = await db
+			.select({
+				// プロジェクト基本情報
+				id: projects.id,
+				gitlab_id: projects.gitlab_id,
+				name: projects.name,
+				description: projects.description,
+				web_url: projects.web_url,
+				default_branch: projects.default_branch,
+				visibility: projects.visibility,
+				created_at: projects.created_at,
+				gitlab_created_at: projects.gitlab_created_at,
+
+				// 統計情報
+				commitCount: count(commits.id),
+				lastCommitDate: latestCommitSyncLogs.last_item_date,
+			})
+			.from(projects)
+			.leftJoin(commits, eq(projects.id, commits.project_id))
+			.leftJoin(
+				latestCommitSyncLogs,
+				eq(projects.id, latestCommitSyncLogs.project_id),
+			)
+			.where(eq(projects.id, id))
+			.groupBy(projects.id, latestCommitSyncLogs.last_item_date);
+
+		return result || null;
+	}
+
+	/**
 	 * すべてのプロジェクトを取得（ページネーション対応）
 	 * @param limit 取得件数制限（デフォルト: 100）
 	 * @param offset オフセット（デフォルト: 0）

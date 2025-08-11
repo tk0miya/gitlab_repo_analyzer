@@ -214,6 +214,46 @@ describe("Projects Repository", () => {
 		});
 	});
 
+	describe("findWithStats", () => {
+		it("should find project with stats by internal ID", async () => {
+			await withTransaction(async () => {
+				// テストプロジェクトを作成
+				const project = await createProject();
+
+				const found = await projectsRepository.findWithStats(project.id);
+
+				expect(found).toBeDefined();
+				expect(found?.id).toBe(project.id);
+				expect(found?.gitlab_id).toBe(project.gitlab_id);
+				expect(found?.name).toBe(project.name);
+				expect(found?.description).toBe(project.description);
+				expect(found?.web_url).toBe(project.web_url);
+				expect(found?.default_branch).toBe(project.default_branch);
+				expect(found?.visibility).toBe(project.visibility);
+				expect(found?.created_at).toBeDefined();
+				expect(found?.gitlab_created_at).toBeDefined();
+
+				// 統計情報フィールドが含まれていることを確認
+				expect(found?.commitCount).toBeDefined();
+				expect(typeof found?.commitCount).toBe("number");
+				// 初期状態ではコミットがないので0であることを確認
+				expect(found?.commitCount).toBe(0);
+				// lastCommitDateは初期状態ではnullの可能性がある
+				expect(
+					found?.lastCommitDate === null ||
+						found?.lastCommitDate instanceof Date,
+				).toBe(true);
+			});
+		});
+
+		it("should return null for non-existent ID", async () => {
+			await withTransaction(async () => {
+				const found = await projectsRepository.findWithStats(999999);
+				expect(found).toBeNull();
+			});
+		});
+	});
+
 	describe("upsert", () => {
 		it("should create new project when it doesn't exist", async () => {
 			await withTransaction(async () => {
