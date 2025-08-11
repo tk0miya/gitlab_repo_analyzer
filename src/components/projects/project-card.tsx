@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProjectVisibilityBadge } from "@/components/ui/project-visibility-badge";
 import type { ProjectWithStats } from "@/database/schema/projects";
 import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 
@@ -11,28 +11,13 @@ interface ProjectCardProps {
 	onProjectsChange?: () => void;
 }
 
-const visibilityConfig = {
-	public: { label: "パブリック", variant: "default" as const },
-	internal: { label: "内部", variant: "secondary" as const },
-	private: { label: "プライベート", variant: "destructive" as const },
-};
-
 export function ProjectCard({ project, onProjectsChange }: ProjectCardProps) {
-	const visibilityInfo = visibilityConfig[
-		project.visibility as keyof typeof visibilityConfig
-	] || {
-		label: project.visibility,
-		variant: "outline" as const,
-	};
-
 	return (
 		<Card className="hover:shadow-md transition-shadow">
 			<CardHeader>
-				<div className="flex items-start justify-between">
+				<div className="flex items-start justify-between gap-2">
 					<CardTitle className="text-lg line-clamp-2">{project.name}</CardTitle>
-					<Badge variant={visibilityInfo.variant} className="ml-2 shrink-0">
-						{visibilityInfo.label}
-					</Badge>
+					<ProjectVisibilityBadge visibility={project.visibility} />
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-3">
@@ -81,7 +66,13 @@ export function ProjectCard({ project, onProjectsChange }: ProjectCardProps) {
 						</div>
 					</div>
 
-					<div className="flex justify-end">
+					<div className="flex justify-between items-center">
+						<Link
+							href={`/projects/${project.id}`}
+							className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+						>
+							詳細を表示
+						</Link>
 						<DeleteConfirmationDialog
 							project={project}
 							onDeleteSuccess={onProjectsChange}

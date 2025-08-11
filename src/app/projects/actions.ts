@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { projectsRepository } from "@/database/index";
+import { commitsRepository, projectsRepository } from "@/database/index";
+import type { MonthlyCommitData } from "@/database/repositories/commits";
 import type { ProjectWithStats } from "@/database/schema/projects";
 import { GitLabApiClient } from "@/lib/gitlab_client";
 import { projectRegistrationSchema } from "@/lib/validation/project-schemas";
@@ -19,6 +20,38 @@ export async function getProjectsWithStats(): Promise<ProjectWithStats[]> {
 	} catch (error) {
 		console.error("プロジェクト統計情報の取得に失敗しました:", error);
 		throw new Error("プロジェクト統計情報の取得に失敗しました");
+	}
+}
+
+/**
+ * プロジェクト詳細を取得するServer Action
+ * @param projectId プロジェクトID
+ * @returns プロジェクト詳細情報
+ */
+export async function getProjectDetail(
+	projectId: number,
+): Promise<ProjectWithStats | null> {
+	try {
+		return await projectsRepository.findWithStats(projectId);
+	} catch (error) {
+		console.error("プロジェクト詳細の取得に失敗しました:", error);
+		throw new Error("プロジェクト詳細の取得に失敗しました");
+	}
+}
+
+/**
+ * プロジェクトの月別コミット数を取得するServer Action
+ * @param projectId プロジェクトID
+ * @returns 月別コミット数の配列
+ */
+export async function getMonthlyCommitCounts(
+	projectId: number,
+): Promise<MonthlyCommitData[]> {
+	try {
+		return await commitsRepository.getMonthlyCommitCounts(projectId);
+	} catch (error) {
+		console.error("月別コミット数の取得に失敗しました:", error);
+		throw new Error("月別コミット数の取得に失敗しました");
 	}
 }
 

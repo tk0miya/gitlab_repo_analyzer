@@ -4,10 +4,12 @@ import {
 	GitLabApiClient,
 	type GitLabApiClient as GitLabApiClientType,
 } from "@/lib/gitlab_client";
-import { createProject } from "@/lib/testing/factories";
+import { createCommit, createProject } from "@/lib/testing/factories";
 import { withTransaction } from "@/lib/testing/transaction";
 import {
 	deleteProject,
+	getMonthlyCommitCounts,
+	getProjectDetail,
 	getProjectsWithStats,
 	registerProject,
 } from "../actions";
@@ -282,6 +284,134 @@ describe("deleteProject Server Action", () => {
 				// 元のメソッドに戻す
 				projectsRepository.delete = originalDelete;
 			}
+		});
+	});
+
+	describe("getProjectDetail", () => {
+		it("プロジェクト詳細を正常に取得できる", async () => {
+			await withTransaction(async () => {
+				// テストプロジェクトを作成
+				const project = await createProject({
+					name: "詳細テスト用プロジェクト",
+					description: "テスト用の説明文",
+				});
+
+				// プロジェクト詳細を取得
+				const result = await getProjectDetail(project.id);
+
+				// プロジェクト詳細が取得できることを確認
+				expect(result).toBeDefined();
+				expect(result?.id).toBe(project.id);
+				expect(result?.name).toBe("詳細テスト用プロジェクト");
+				expect(result?.description).toBe("テスト用の説明文");
+
+				// 統計情報が含まれていることを確認
+				expect(result?.commitCount).toBeGreaterThanOrEqual(0);
+				expect(
+					result?.lastCommitDate === null ||
+						result?.lastCommitDate instanceof Date,
+				).toBe(true);
+			});
+		});
+
+		it("存在しないプロジェクトIDでnullを返す", async () => {
+			await withTransaction(async () => {
+				const result = await getProjectDetail(999999);
+				expect(result).toBeNull();
+			});
+		});
+
+		it("データベースエラー時に適切なエラーをスローする", async () => {
+			await withTransaction(async () => {
+				// projectsRepositoryのfindWithStatsメソッドを一時的にモック
+				const { projectsRepository } = await import("@/database/index");
+				const originalFindWithStats = projectsRepository.findWithStats;
+
+				projectsRepository.findWithStats = vi
+					.fn()
+					.mockRejectedValue(new Error("Database connection error"));
+
+				try {
+					await expect(getProjectDetail(1)).rejects.toThrow(
+						"プロジェクト詳細の取得に失敗しました",
+					);
+				} finally {
+					// 元のメソッドに戻す
+					projectsRepository.findWithStats = originalFindWithStats;
+				}
+			});
+		});
+	});
+
+	describe("getMonthlyCommitCounts", () => {
+		it("月別コミット数を正常に取得できる", async () => {
+			await withTransaction(async () => {
+				// テストプロジェクトを作成
+				const project = await createProject({ name: "コミット統計テスト用" });
+
+				// テストコミットを作成
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-15T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-02-10T10:00:00Z"),
+				});
+
+				// 月別コミット数を取得
+				const result = await getMonthlyCommitCounts(project.id);
+
+				// 結果が配列であることを確認
+				expect(Array.isArray(result)).toBe(true);
+				expect(result.length).toBe(2);
+
+				// データ形式が正しいことを確認
+				result.forEach((item) => {
+					expect(item).toHaveProperty("month");
+					expect(item).toHaveProperty("count");
+					expect(typeof item.month).toBe("string");
+					expect(typeof item.count).toBe("number");
+					expect(item.count).toBeGreaterThanOrEqual(1);
+				});
+
+				// 具体的なデータ内容を確認
+				expect(result).toEqual([
+					{ month: "2024-01", count: 1 },
+					{ month: "2024-02", count: 1 },
+				]);
+			});
+		});
+
+		it("データベースエラー時に適切なエラーをスローする", async () => {
+			await withTransaction(async () => {
+				// commitsRepositoryのgetMonthlyCommitCountsメソッドを一時的にモック
+				const { commitsRepository } = await import("@/database/index");
+				const originalGetMonthlyCommitCounts =
+					commitsRepository.getMonthlyCommitCounts;
+
+				commitsRepository.getMonthlyCommitCounts = vi
+					.fn()
+					.mockRejectedValue(new Error("Query execution error"));
+
+				try {
+					await expect(getMonthlyCommitCounts(1)).rejects.toThrow(
+						"月別コミット数の取得に失敗しました",
+					);
+				} finally {
+					// 元のメソッドに戻す
+					commitsRepository.getMonthlyCommitCounts =
+						originalGetMonthlyCommitCounts;
+				}
+			});
+		});
+
+		it("存在しないプロジェクトでも空配列を返す", async () => {
+			await withTransaction(async () => {
+				const result = await getMonthlyCommitCounts(999999);
+				expect(Array.isArray(result)).toBe(true);
+				expect(result.length).toBe(0);
+			});
 		});
 	});
 });
