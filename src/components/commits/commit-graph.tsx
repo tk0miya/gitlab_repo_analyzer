@@ -10,9 +10,35 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import type { CommitStats } from "@/database/repositories/commits";
 
 interface CommitGraphProps {
-	data: { month: string; count: number }[];
+	data: CommitStats[];
+	period: CommitStats["type"];
+}
+
+/**
+ * 期間データを表示用ラベルに変換
+ * @param item コミット統計データ
+ * @returns 表示用ラベル付きデータ
+ */
+function createPeriodLabel(
+	item: CommitStats,
+): CommitStats & { periodLabel: string } {
+	if (item.type === "monthly") {
+		return {
+			...item,
+			periodLabel: `${item.period.replace("-", "年")}月`,
+		};
+	} else if (item.type === "weekly") {
+		// 週番号をより読みやすい形式に変換（例: 2024-01 → 2024年第1週）
+		const [year, week] = item.period.split("-");
+		return {
+			...item,
+			periodLabel: `${year}年第${week}週`,
+		};
+	}
+	return { ...item, periodLabel: item.period };
 }
 
 export function CommitGraph({ data }: CommitGraphProps) {
@@ -22,11 +48,8 @@ export function CommitGraph({ data }: CommitGraphProps) {
 			return [];
 		}
 
-		// 月のラベルを日本語形式に変換
-		return data.map((item) => ({
-			...item,
-			monthLabel: `${item.month.replace("-", "年")}月`,
-		}));
+		// 期間タイプに応じてラベルを変換
+		return data.map(createPeriodLabel);
 	}, [data]);
 
 	// データが空の場合の表示
@@ -47,16 +70,16 @@ export function CommitGraph({ data }: CommitGraphProps) {
 						top: 20,
 						right: 30,
 						left: 20,
-						bottom: 20,
+						bottom: 100,
 					}}
 				>
 					<CartesianGrid strokeDasharray="3 3" />
 					<XAxis
-						dataKey="monthLabel"
+						dataKey="periodLabel"
 						tick={{ fontSize: 12 }}
 						angle={-45}
 						textAnchor="end"
-						height={80}
+						height={100}
 					/>
 					<YAxis
 						tick={{ fontSize: 12 }}

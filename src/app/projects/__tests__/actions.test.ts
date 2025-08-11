@@ -8,9 +8,10 @@ import { createCommit, createProject } from "@/lib/testing/factories";
 import { withTransaction } from "@/lib/testing/transaction";
 import {
 	deleteProject,
-	getMonthlyCommitCounts,
+	getMonthlyCommitStats,
 	getProjectDetail,
 	getProjectsWithStats,
+	getWeeklyCommitStats,
 	registerProject,
 } from "../actions";
 
@@ -343,8 +344,8 @@ describe("deleteProject Server Action", () => {
 		});
 	});
 
-	describe("getMonthlyCommitCounts", () => {
-		it("月別コミット数を正常に取得できる", async () => {
+	describe("getMonthlyCommitStats", () => {
+		it("月別コミット統計を正常に取得できる", async () => {
 			await withTransaction(async () => {
 				// テストプロジェクトを作成
 				const project = await createProject({ name: "コミット統計テスト用" });
@@ -359,8 +360,8 @@ describe("deleteProject Server Action", () => {
 					authored_date: new Date("2024-02-10T10:00:00Z"),
 				});
 
-				// 月別コミット数を取得
-				const result = await getMonthlyCommitCounts(project.id);
+				// 月別コミット統計を取得
+				const result = await getMonthlyCommitStats(project.id);
 
 				// 結果が配列であることを確認
 				expect(Array.isArray(result)).toBe(true);
@@ -368,47 +369,112 @@ describe("deleteProject Server Action", () => {
 
 				// データ形式が正しいことを確認
 				result.forEach((item) => {
-					expect(item).toHaveProperty("month");
+					expect(item).toHaveProperty("period");
 					expect(item).toHaveProperty("count");
-					expect(typeof item.month).toBe("string");
+					expect(item).toHaveProperty("type");
+					expect(typeof item.period).toBe("string");
 					expect(typeof item.count).toBe("number");
+					expect(item.type).toBe("monthly");
 					expect(item.count).toBeGreaterThanOrEqual(1);
 				});
 
 				// 具体的なデータ内容を確認
 				expect(result).toEqual([
-					{ month: "2024-01", count: 1 },
-					{ month: "2024-02", count: 1 },
+					{ period: "2024-01", count: 1, type: "monthly" },
+					{ period: "2024-02", count: 1, type: "monthly" },
 				]);
 			});
 		});
 
 		it("データベースエラー時に適切なエラーをスローする", async () => {
 			await withTransaction(async () => {
-				// commitsRepositoryのgetMonthlyCommitCountsメソッドを一時的にモック
+				// commitsRepositoryのgetMonthlyCommitStatsメソッドを一時的にモック
 				const { commitsRepository } = await import("@/database/index");
-				const originalGetMonthlyCommitCounts =
-					commitsRepository.getMonthlyCommitCounts;
+				const originalGetMonthlyCommitStats =
+					commitsRepository.getMonthlyCommitStats;
 
-				commitsRepository.getMonthlyCommitCounts = vi
+				commitsRepository.getMonthlyCommitStats = vi
 					.fn()
 					.mockRejectedValue(new Error("Query execution error"));
 
 				try {
-					await expect(getMonthlyCommitCounts(1)).rejects.toThrow(
-						"月別コミット数の取得に失敗しました",
+					await expect(getMonthlyCommitStats(1)).rejects.toThrow(
+						"月別コミット統計の取得に失敗しました",
 					);
 				} finally {
 					// 元のメソッドに戻す
-					commitsRepository.getMonthlyCommitCounts =
-						originalGetMonthlyCommitCounts;
+					commitsRepository.getMonthlyCommitStats =
+						originalGetMonthlyCommitStats;
 				}
 			});
 		});
 
 		it("存在しないプロジェクトでも空配列を返す", async () => {
 			await withTransaction(async () => {
-				const result = await getMonthlyCommitCounts(999999);
+				const result = await getMonthlyCommitStats(999999);
+				expect(Array.isArray(result)).toBe(true);
+				expect(result.length).toBe(0);
+			});
+		});
+	});
+
+	describe("getWeeklyCommitStats", () => {
+		it("プロジェクトの週別コミット統計を取得できる", async () => {
+			await withTransaction(async () => {
+				// テスト用プロジェクトとコミットを作成
+				const project = await createProject();
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-02T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-10T10:00:00Z"),
+				});
+
+				const result = await getWeeklyCommitStats(project.id);
+
+				expect(Array.isArray(result)).toBe(true);
+				expect(result.length).toBeGreaterThan(0);
+
+				// データ構造の確認
+				for (const item of result) {
+					expect(item).toHaveProperty("period");
+					expect(item).toHaveProperty("count");
+					expect(item).toHaveProperty("type");
+					expect(typeof item.period).toBe("string");
+					expect(typeof item.count).toBe("number");
+					expect(item.type).toBe("weekly");
+				}
+			});
+		});
+
+		it("エラーが発生した場合、適切なエラーメッセージを投げる", async () => {
+			await withTransaction(async () => {
+				// commitsRepositoryのgetWeeklyCommitStatsメソッドを一時的にモック
+				const commitsRepository = await import("@/database/repositories");
+				const originalGetWeeklyCommitStats =
+					commitsRepository.commitsRepository.getWeeklyCommitStats;
+
+				commitsRepository.commitsRepository.getWeeklyCommitStats = vi
+					.fn()
+					.mockRejectedValue(new Error("Database error"));
+
+				try {
+					await expect(getWeeklyCommitStats(1)).rejects.toThrow(
+						"週別コミット統計の取得に失敗しました",
+					);
+				} finally {
+					// 元のメソッドに戻す
+					commitsRepository.commitsRepository.getWeeklyCommitStats =
+						originalGetWeeklyCommitStats;
+				}
+			});
+		});
+
+		it("存在しないプロジェクトでも空配列を返す", async () => {
+			await withTransaction(async () => {
+				const result = await getWeeklyCommitStats(999999);
 				expect(Array.isArray(result)).toBe(true);
 				expect(result.length).toBe(0);
 			});

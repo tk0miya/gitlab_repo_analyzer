@@ -3,14 +3,21 @@
 import { ArrowLeft, GitBranch } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { CommitGraph } from "@/components/commits/commit-graph";
+import { useEffect, useState } from "react";
+import { CommitAnalysisCard } from "@/components/commits/commit-analysis-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProjectVisibilityBadge } from "@/components/ui/project-visibility-badge";
-import type { MonthlyCommitData } from "@/database/repositories/commits";
+import type {
+	AnalysisPeriod,
+	CommitStats,
+} from "@/database/repositories/commits";
 import type { ProjectWithStats } from "@/database/schema/projects";
-import { getMonthlyCommitCounts, getProjectDetail } from "../actions";
+import {
+	getMonthlyCommitStats,
+	getProjectDetail,
+	getWeeklyCommitStats,
+} from "../actions";
 
 interface PageProps {
 	params: { id: string };
@@ -18,7 +25,10 @@ interface PageProps {
 
 export default function ProjectDetailPage({ params }: PageProps) {
 	const [project, setProject] = useState<ProjectWithStats | null>(null);
-	const [monthlyData, setMonthlyData] = useState<MonthlyCommitData[]>([]);
+	const [monthlyStats, setMonthlyStats] = useState<CommitStats[]>([]);
+	const [weeklyStats, setWeeklyStats] = useState<CommitStats[]>([]);
+	const [analysisPeriod, setAnalysisPeriod] =
+		useState<AnalysisPeriod>("monthly");
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -28,34 +38,58 @@ export default function ProjectDetailPage({ params }: PageProps) {
 		notFound();
 	}
 
-	const fetchProjectData = useCallback(async () => {
-		try {
-			setLoading(true);
+	useEffect(() => {
+		const fetchProjectData = async () => {
+			try {
+				setLoading(true);
 
-			const [projectData, commitData] = await Promise.all([
-				getProjectDetail(projectId),
-				getMonthlyCommitCounts(projectId),
-			]);
+				const projectData = await getProjectDetail(projectId);
 
-			if (!projectData) {
-				notFound();
+				if (!projectData) {
+					notFound();
+				}
+
+				setProject(projectData);
+				setError(null);
+			} catch (err) {
+				setError(
+					err instanceof Error ? err.message : "データの取得に失敗しました",
+				);
+			} finally {
+				setLoading(false);
 			}
+		};
 
-			setProject(projectData);
-			setMonthlyData(commitData);
-			setError(null);
-		} catch (err) {
-			setError(
-				err instanceof Error ? err.message : "データの取得に失敗しました",
-			);
-		} finally {
-			setLoading(false);
-		}
+		fetchProjectData();
 	}, [projectId]);
 
+	// period変更時に必要なデータを取得
 	useEffect(() => {
-		fetchProjectData();
-	}, [fetchProjectData]);
+		const fetchCommitStats = async () => {
+			try {
+				if (analysisPeriod === "monthly") {
+					// 月別データが未ロードの場合のみ取得
+					if (monthlyStats.length === 0) {
+						const stats = await getMonthlyCommitStats(projectId);
+						setMonthlyStats(stats);
+					}
+				} else {
+					// 週別データが未ロードの場合のみ取得
+					if (weeklyStats.length === 0) {
+						const stats = await getWeeklyCommitStats(projectId);
+						setWeeklyStats(stats);
+					}
+				}
+			} catch (err) {
+				console.error("コミット統計データの取得に失敗しました:", err);
+			}
+		};
+
+		fetchCommitStats();
+	}, [projectId, analysisPeriod, monthlyStats?.length, weeklyStats?.length]);
+
+	// 現在選択されているperiodのデータを取得
+	const commitStats = analysisPeriod === "monthly" ? monthlyStats : weeklyStats;
 
 	if (loading) {
 		return (
@@ -169,14 +203,11 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
 				{/* コミット分析 */}
 				<div className="lg:col-span-2">
-					<Card>
-						<CardHeader>
-							<CardTitle>月別コミット数</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<CommitGraph data={monthlyData} />
-						</CardContent>
-					</Card>
+					<CommitAnalysisCard
+						period={analysisPeriod}
+						commitStats={commitStats}
+						onPeriodChange={setAnalysisPeriod}
+					/>
 				</div>
 			</div>
 		</div>

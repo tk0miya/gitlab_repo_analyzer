@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { commitsRepository } from "@/database/repositories";
 import {
 	buildNewCommit,
@@ -344,55 +344,49 @@ describe("Commits Repository", () => {
 
 	// ==================== 統計操作 ====================
 
-	describe("getMonthlyCommitCounts", () => {
+	describe("getMonthlyCommitStats", () => {
 		it("should return monthly commit counts for a project", async () => {
 			await withTransaction(async () => {
 				// テスト用プロジェクトを作成
 				const project = await createProject();
 
 				// 異なる月のコミットを作成（1月に3件、2月に2件、3月に1件）
-				const commits = [
-					buildNewCommit({
-						project_id: project.id,
-						authored_date: new Date("2024-01-15T10:00:00Z"),
-					}),
-					buildNewCommit({
-						project_id: project.id,
-						authored_date: new Date("2024-01-20T10:00:00Z"),
-					}),
-					buildNewCommit({
-						project_id: project.id,
-						authored_date: new Date("2024-01-25T10:00:00Z"),
-					}),
-					buildNewCommit({
-						project_id: project.id,
-						authored_date: new Date("2024-02-10T10:00:00Z"),
-					}),
-					buildNewCommit({
-						project_id: project.id,
-						authored_date: new Date("2024-02-20T10:00:00Z"),
-					}),
-					buildNewCommit({
-						project_id: project.id,
-						authored_date: new Date("2024-03-05T10:00:00Z"),
-					}),
-				];
-
-				for (const commit of commits) {
-					await commitsRepository.create(commit);
-				}
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-15T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-20T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-25T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-02-10T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-02-20T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-03-05T10:00:00Z"),
+				});
 
 				// 月別コミット数を取得
-				const result = await commitsRepository.getMonthlyCommitCounts(
+				const result = await commitsRepository.getMonthlyCommitStats(
 					project.id,
 				);
 
 				// 結果の検証
 				expect(result).toHaveLength(3); // 2024-01, 2024-02, 2024-03
 
-				const janData = result.find((item) => item.month === "2024-01");
-				const febData = result.find((item) => item.month === "2024-02");
-				const marData = result.find((item) => item.month === "2024-03");
+				const janData = result.find((item) => item.period === "2024-01");
+				const febData = result.find((item) => item.period === "2024-02");
+				const marData = result.find((item) => item.period === "2024-03");
 
 				expect(janData).toBeDefined();
 				expect(janData?.count).toBe(3);
@@ -410,7 +404,7 @@ describe("Commits Repository", () => {
 				// コミットのないプロジェクトを作成
 				const project = await createProject();
 
-				const result = await commitsRepository.getMonthlyCommitCounts(
+				const result = await commitsRepository.getMonthlyCommitStats(
 					project.id,
 				);
 
@@ -420,7 +414,7 @@ describe("Commits Repository", () => {
 
 		it("should return empty array for non-existent project", async () => {
 			await withTransaction(async () => {
-				const result = await commitsRepository.getMonthlyCommitCounts(999999);
+				const result = await commitsRepository.getMonthlyCommitStats(999999);
 
 				expect(result).toEqual([]);
 			});
@@ -432,34 +426,109 @@ describe("Commits Repository", () => {
 				const project = await createProject();
 
 				// 時系列が逆順の複数の月のコミットを作成
-				const commits = [
-					buildNewCommit({
-						project_id: project.id,
-						authored_date: new Date("2024-03-15T10:00:00Z"),
-					}),
-					buildNewCommit({
-						project_id: project.id,
-						authored_date: new Date("2024-01-15T10:00:00Z"),
-					}),
-					buildNewCommit({
-						project_id: project.id,
-						authored_date: new Date("2024-02-15T10:00:00Z"),
-					}),
-				];
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-03-15T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-15T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-02-15T10:00:00Z"),
+				});
 
-				for (const commit of commits) {
-					await commitsRepository.create(commit);
-				}
-
-				const result = await commitsRepository.getMonthlyCommitCounts(
+				const result = await commitsRepository.getMonthlyCommitStats(
 					project.id,
 				);
 
 				// 月順でソートされていることを確認
 				expect(result).toHaveLength(3);
-				expect(result[0].month).toBe("2024-01");
-				expect(result[1].month).toBe("2024-02");
-				expect(result[2].month).toBe("2024-03");
+				expect(result[0].period).toBe("2024-01");
+				expect(result[1].period).toBe("2024-02");
+				expect(result[2].period).toBe("2024-03");
+			});
+		});
+	});
+
+	// ==================== 週別コミット数の取得 ====================
+
+	describe("getWeeklyCommitStats", () => {
+		beforeEach(() => {
+			// 現在時刻を2024年6月1日に固定（2年前フィルターのテストのため）
+			vi.useFakeTimers({ now: new Date("2024-06-01T00:00:00Z") });
+		});
+
+		afterEach(() => {
+			vi.useRealTimers();
+		});
+
+		it("should return weekly commit counts, sort by week, and filter last 2 years", async () => {
+			await withTransaction(async () => {
+				// テスト用プロジェクトを作成
+				const project = await createProject();
+
+				// 固定日時を使用（時系列が逆順で、異なる週のコミット）
+				// 2024年第3週（1月15日〜21日）
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-15T10:00:00Z"),
+				});
+				// 2024年第1週（1月1日〜7日）
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-02T10:00:00Z"),
+				});
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-03T10:00:00Z"),
+				});
+				// 2024年第2週（1月8日〜14日）
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2024-01-08T10:00:00Z"),
+				});
+
+				// 3年前のコミット（除外される）
+				await createCommit({
+					project_id: project.id,
+					authored_date: new Date("2021-01-15T10:00:00Z"),
+				});
+
+				const result = await commitsRepository.getWeeklyCommitStats(project.id);
+
+				// 結果の検証：2年以内のコミットのみが含まれる
+				expect(result).toHaveLength(3); // 3年前のコミットは除外される
+
+				// 週順でソートされていることを確認
+				expect(result[0].period).toBe("2024-01");
+				expect(result[1].period).toBe("2024-02");
+				expect(result[2].period).toBe("2024-03");
+
+				// カウントの確認
+				expect(result[0].count).toBe(2); // 第1週: 2件
+				expect(result[1].count).toBe(1); // 第2週: 1件
+				expect(result[2].count).toBe(1); // 第3週: 1件
+			});
+		});
+
+		it("should return empty array when no commits exist", async () => {
+			await withTransaction(async () => {
+				// テスト用プロジェクトを作成（コミットは作成しない）
+				const project = await createProject();
+
+				const result = await commitsRepository.getWeeklyCommitStats(project.id);
+
+				expect(result).toEqual([]);
+			});
+		});
+
+		it("should return empty array for non-existent project", async () => {
+			await withTransaction(async () => {
+				const result = await commitsRepository.getWeeklyCommitStats(999999);
+
+				expect(result).toEqual([]);
 			});
 		});
 	});
