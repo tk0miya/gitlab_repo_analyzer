@@ -16,7 +16,16 @@ export {
 	createCommit,
 	createCommits,
 } from "./database/commits";
-
+// マージリクエスト関連のファクトリ関数（データベース）
+export {
+	buildMergeRequest,
+	buildMergeRequests,
+	// build系（インメモリ）
+	buildNewMergeRequest,
+	// create系（DB永続化）
+	createMergeRequest,
+	createMergeRequests,
+} from "./database/merge-requests";
 // プロジェクト関連のファクトリ関数（データベース）
 export {
 	// build系（インメモリ）
