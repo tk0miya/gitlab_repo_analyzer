@@ -11,6 +11,10 @@ import type {
 import axios from "axios";
 import { loadConfig } from "@/config/index";
 import type { GitLabCommit, GitLabCommitsQuery } from "./types/commit";
+import type {
+	GitLabMergeRequest,
+	GitLabMergeRequestsQuery,
+} from "./types/merge-request";
 import type { GitLabProject } from "./types/project";
 import type { GitLabUser } from "./types/user";
 
@@ -187,6 +191,59 @@ export class GitLabApiClient {
 			const response = await client.get(url);
 
 			// コミットがない場合は終了
+			if (!response.data || response.data.length === 0) {
+				break;
+			}
+
+			yield response.data;
+
+			// 次のページがない場合は終了
+			const nextPage = response.headers["x-next-page"];
+			if (!nextPage) {
+				break;
+			}
+
+			currentPage++;
+		}
+	}
+
+	/**
+	 * プロジェクトのマージリクエスト一覧を取得（ジェネレータ）
+	 * GET /api/v4/projects/:id/merge_requests
+	 *
+	 * 参考: https://docs.gitlab.com/ee/api/merge_requests.html#list-merge-requests
+	 */
+	async *getMergeRequests(
+		projectId: string,
+		options: GitLabMergeRequestsQuery = {},
+	): AsyncGenerator<GitLabMergeRequest[], void, unknown> {
+		const encodedId = encodeURIComponent(projectId);
+		const client = await this.getClient();
+
+		// デフォルト値を設定
+		const defaultOptions = {
+			per_page: options.per_page ?? 20,
+			page: options.page ?? 1,
+			...options,
+		};
+
+		let currentPage = defaultOptions.page;
+
+		while (true) {
+			// クエリパラメータを構築
+			const params = new URLSearchParams();
+			if (defaultOptions.updated_after)
+				params.append("updated_after", defaultOptions.updated_after);
+			params.append("page", currentPage.toString());
+			params.append("per_page", defaultOptions.per_page.toString());
+
+			const url = `/api/v4/projects/${encodedId}/merge_requests${
+				params.toString() ? `?${params.toString()}` : ""
+			}`;
+
+			const response = await client.get(url);
+
+			// マージリクエストがない場合は終了
 			if (!response.data || response.data.length === 0) {
 				break;
 			}

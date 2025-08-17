@@ -17,6 +17,19 @@ export type {
 } from "./types/commit";
 // 型定義
 export type { GitLabClientConfig } from "./types/common";
+// マージリクエスト関連の型定義
+export type {
+	GitLabMergeRequest,
+	GitLabMergeRequestAssignee,
+	GitLabMergeRequestAuthor,
+	GitLabMergeRequestDiffRefs,
+	GitLabMergeRequestMilestone,
+	GitLabMergeRequestPipeline,
+	GitLabMergeRequestReviewer,
+	GitLabMergeRequestsQuery,
+	GitLabMergeRequestsResponse,
+	GitLabMergeRequestTimeStats,
+} from "./types/merge-request";
 export type { GitLabProject } from "./types/project";
 // リポジトリ関連の型定義
 export type {

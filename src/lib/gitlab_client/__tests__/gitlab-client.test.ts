@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	GitLabApiClient,
 	type GitLabCommit,
+	type GitLabMergeRequest,
 	type GitLabProject,
 	type GitLabUser,
 } from "@/lib/gitlab_client";
@@ -14,6 +15,12 @@ import {
 // axiosをモック
 vi.mock("axios");
 const mockedAxios = vi.mocked(axios);
+
+// テストヘルパー関数をインポート
+import {
+	buildGitLabMergeRequest,
+	buildGitLabMergeRequests,
+} from "@/lib/testing/factories";
 
 // テストヘルパー関数: モックコミットデータを生成
 function createMockCommit(overrides: Partial<GitLabCommit> = {}): GitLabCommit {
@@ -271,6 +278,118 @@ describe("GitLabApiClient", () => {
 
 			const secondPage = await generator.next();
 			expect(secondPage.value).toEqual(mockCommitsPage2);
+			expect(secondPage.done).toBe(false);
+
+			const endResult = await generator.next();
+			expect(endResult.done).toBe(true);
+
+			expect(mockAxiosInstance.get).toHaveBeenCalledTimes(2);
+		});
+	});
+
+	describe("getMergeRequests", () => {
+		let client: GitLabApiClient;
+
+		beforeEach(() => {
+			client = new GitLabApiClient();
+		});
+
+		it("プロジェクトのマージリクエスト一覧を正常に取得できる（ジェネレータ）", async () => {
+			const mockMergeRequests: GitLabMergeRequest[] = [
+				buildGitLabMergeRequest(),
+			];
+
+			mockAxiosInstance.get.mockResolvedValue({
+				data: mockMergeRequests,
+				headers: {
+					"x-total": "1",
+					"x-page": "1",
+					"x-per-page": "100",
+					"x-next-page": "",
+					"x-prev-page": "",
+				},
+			});
+
+			const generator = client.getMergeRequests("123");
+			const result = await generator.next();
+
+			expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+				"/api/v4/projects/123/merge_requests?page=1&per_page=20",
+			);
+			expect(result.value).toEqual(mockMergeRequests);
+			expect(result.done).toBe(false);
+
+			// 次の呼び出しで終了することを確認
+			const nextResult = await generator.next();
+			expect(nextResult.done).toBe(true);
+		});
+
+		it("オプションパラメータを正しく処理する", async () => {
+			const mockMergeRequests: GitLabMergeRequest[] = [];
+
+			mockAxiosInstance.get.mockResolvedValue({
+				data: mockMergeRequests,
+				headers: {
+					"x-total": "0",
+					"x-page": "2",
+					"x-per-page": "50",
+					"x-next-page": "",
+					"x-prev-page": "1",
+				},
+			});
+
+			const generator = client.getMergeRequests("123", {
+				updated_after: "2023-01-01T00:00:00Z",
+				page: 2,
+				per_page: 50,
+			});
+			await generator.next();
+
+			expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+				"/api/v4/projects/123/merge_requests?updated_after=2023-01-01T00%3A00%3A00Z&page=2&per_page=50",
+			);
+		});
+
+		it("複数ページを順次取得できる", async () => {
+			const mockMergeRequestsPage1: GitLabMergeRequest[] =
+				buildGitLabMergeRequests(1);
+			const mockMergeRequestsPage2: GitLabMergeRequest[] =
+				buildGitLabMergeRequests(1, {
+					id: 2,
+					iid: 2,
+					title: "マージリクエスト 2",
+				});
+
+			mockAxiosInstance.get
+				.mockResolvedValueOnce({
+					data: mockMergeRequestsPage1,
+					headers: {
+						"x-total": "2",
+						"x-page": "1",
+						"x-per-page": "1",
+						"x-next-page": "2",
+						"x-prev-page": "",
+					},
+				})
+				.mockResolvedValueOnce({
+					data: mockMergeRequestsPage2,
+					headers: {
+						"x-total": "2",
+						"x-page": "2",
+						"x-per-page": "1",
+						"x-next-page": "",
+						"x-prev-page": "1",
+					},
+				});
+
+			const generator = client.getMergeRequests("123", { per_page: 1 });
+
+			const firstPage = await generator.next();
+			expect(firstPage.value).toEqual(mockMergeRequestsPage1);
+			expect(firstPage.done).toBe(false);
+
+			const secondPage = await generator.next();
+			expect(secondPage.value).toEqual(mockMergeRequestsPage2);
 			expect(secondPage.done).toBe(false);
 
 			const endResult = await generator.next();
