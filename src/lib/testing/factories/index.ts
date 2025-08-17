@@ -17,6 +17,18 @@ export {
 	createCommits,
 } from "./database/commits";
 
+// マージリクエスト関連のファクトリ関数（データベース）
+export {
+	buildMergeRequest,
+	buildMergeRequests,
+	// build系（インメモリ）
+	buildNewMergeRequest,
+	buildNewMergeRequests,
+	// create系（DB永続化）
+	createMergeRequest,
+	createMergeRequests,
+} from "./database/merge-requests";
+
 // プロジェクト関連のファクトリ関数（データベース）
 export {
 	// build系（インメモリ）
@@ -51,3 +63,4 @@ export {
 // export { buildUser, createUser } from "./database/users";
 // export { buildIssue, createIssue } from "./database/issues";
 // export { buildGitLabProject } from "./gitlab_client/projects";
+// export { buildGitLabMergeRequest } from "./gitlab_client/merge-requests";
