@@ -11,7 +11,11 @@ import { projects } from "./projects";
 /**
  * 同期タイプ定義
  */
-export const syncTypeEnum = pgEnum("sync_type", ["projects", "commits"]);
+export const syncTypeEnum = pgEnum("sync_type", [
+	"projects",
+	"commits",
+	"merge_requests",
+]);
 
 /**
  * 同期履歴管理テーブル
@@ -64,4 +68,5 @@ export type SyncType = (typeof syncTypeEnum.enumValues)[number];
 export const SYNC_TYPES = {
 	PROJECTS: "projects",
 	COMMITS: "commits",
+	MERGE_REQUESTS: "merge_requests",
 } as const;
