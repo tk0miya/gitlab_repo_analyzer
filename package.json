@@ -46,7 +46,7 @@
 		"@types/react": "^19.1.10",
 		"@types/react-dom": "^19.1.7",
 		"autoprefixer": "^10.4.21",
-		"esbuild": "^0.25.8",
+		"esbuild": "^0.25.9",
 		"husky": "^9.1.7",
 		"jsdom": "^26.1.0",
 		"lint-staged": "^16.1.2",
