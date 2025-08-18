@@ -54,6 +54,11 @@ export {
 	buildGitLabCommit,
 	buildGitLabCommits,
 } from "./gitlab_client/commits";
+export {
+	buildGitLabMergeRequest,
+	buildGitLabMergeRequests,
+	buildMergedGitLabMergeRequest,
+} from "./gitlab_client/merge-requests";
 
 // 今後他のエンティティのファクトリを追加する場合は、ここに追加してください
 // 例:
