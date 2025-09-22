@@ -35,6 +35,21 @@ export interface WeeklyCommitStats extends Omit<CommitStats, "type"> {
 }
 
 /**
+ * コミッターランキングの期間タイプ
+ */
+export type RankingPeriod = "all" | "year" | "halfYear" | "month";
+
+/**
+ * コミッターランキングデータ
+ */
+export interface CommitterRanking {
+	rank: number;
+	authorName: string;
+	authorEmail: string;
+	commitCount: number;
+}
+
+/**
  * コミット操作のリポジトリクラス
  * commitsテーブルに対するCRUD操作を提供
  */
@@ -214,6 +229,70 @@ export class CommitsRepository {
 			period: row.period,
 			count: Number(row.count),
 			type: "weekly" as const,
+		}));
+	}
+
+	/**
+	 * プロジェクトのコミッターランキングを取得
+	 * @param projectId プロジェクトID
+	 * @param period 期間（all: 全期間, year: 1年, halfYear: 半年, month: 1ヶ月）
+	 * @param limit 取得件数（デフォルト: 10）
+	 * @returns コミッターランキングの配列
+	 */
+	async getCommitterRanking(
+		projectId: number,
+		period: RankingPeriod = "all",
+		limit: number = 10,
+	): Promise<CommitterRanking[]> {
+		const db = await getDb();
+
+		// 期間に応じた開始日を計算
+		let startDate: Date | null = null;
+		const now = new Date();
+
+		switch (period) {
+			case "year":
+				startDate = new Date(now);
+				startDate.setFullYear(now.getFullYear() - 1);
+				break;
+			case "halfYear":
+				startDate = new Date(now);
+				startDate.setMonth(now.getMonth() - 6);
+				break;
+			case "month":
+				startDate = new Date(now);
+				startDate.setMonth(now.getMonth() - 1);
+				break;
+			default:
+				startDate = null;
+				break;
+		}
+
+		// WHERE条件の構築
+		const whereConditions = [eq(commits.project_id, projectId)];
+		if (startDate) {
+			whereConditions.push(sql`${commits.authored_date} >= ${startDate}`);
+		}
+
+		// コミッターごとのコミット数を集計
+		const results = await db
+			.select({
+				authorName: commits.author_name,
+				authorEmail: commits.author_email,
+				commitCount: count().as("commit_count"),
+			})
+			.from(commits)
+			.where(and(...whereConditions))
+			.groupBy(commits.author_email, commits.author_name)
+			.orderBy(desc(count()))
+			.limit(limit);
+
+		// ランキング番号を付与
+		return results.map((row, index) => ({
+			rank: index + 1,
+			authorName: row.authorName,
+			authorEmail: row.authorEmail,
+			commitCount: Number(row.commitCount),
 		}));
 	}
 

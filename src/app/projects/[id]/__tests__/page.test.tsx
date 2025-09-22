@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { buildProjectWithStats } from "@/lib/testing/factories";
 import {
+	getCommitterRanking,
 	getMonthlyCommitStats,
 	getProjectDetail,
 	getWeeklyCommitStats,
@@ -29,6 +30,7 @@ vi.mock("../../actions", () => ({
 	getProjectDetail: vi.fn(),
 	getMonthlyCommitStats: vi.fn(),
 	getWeeklyCommitStats: vi.fn(),
+	getCommitterRanking: vi.fn(),
 }));
 
 const mockProject = buildProjectWithStats({
@@ -53,6 +55,15 @@ const mockWeeklyData = [
 	{ period: "2024-02", count: 5, type: "weekly" as const },
 ];
 
+const mockCommitterRanking = [
+	{
+		rank: 1,
+		authorName: "Test User",
+		authorEmail: "test@example.com",
+		commitCount: 10,
+	},
+];
+
 describe("ProjectDetailPage", () => {
 	it("should display loading state initially", () => {
 		vi.mocked(getProjectDetail).mockImplementation(
@@ -62,6 +73,9 @@ describe("ProjectDetailPage", () => {
 			() => new Promise(() => {}),
 		);
 		vi.mocked(getWeeklyCommitStats).mockImplementation(
+			() => new Promise(() => {}),
+		);
+		vi.mocked(getCommitterRanking).mockImplementation(
 			() => new Promise(() => {}),
 		);
 
@@ -77,6 +91,7 @@ describe("ProjectDetailPage", () => {
 		vi.mocked(getProjectDetail).mockResolvedValue(mockProject);
 		vi.mocked(getMonthlyCommitStats).mockResolvedValue(mockMonthlyData);
 		vi.mocked(getWeeklyCommitStats).mockResolvedValue(mockWeeklyData);
+		vi.mocked(getCommitterRanking).mockResolvedValue(mockCommitterRanking);
 
 		render(<ProjectDetailPage params={{ id: "1" }} />);
 
@@ -115,6 +130,7 @@ describe("ProjectDetailPage", () => {
 		);
 		vi.mocked(getMonthlyCommitStats).mockResolvedValue([]);
 		vi.mocked(getWeeklyCommitStats).mockResolvedValue(mockWeeklyData);
+		vi.mocked(getCommitterRanking).mockResolvedValue([]);
 
 		render(<ProjectDetailPage params={{ id: "1" }} />);
 
@@ -131,6 +147,7 @@ describe("ProjectDetailPage", () => {
 		vi.mocked(getProjectDetail).mockResolvedValue(null);
 		vi.mocked(getMonthlyCommitStats).mockResolvedValue([]);
 		vi.mocked(getWeeklyCommitStats).mockResolvedValue(mockWeeklyData);
+		vi.mocked(getCommitterRanking).mockResolvedValue([]);
 
 		render(<ProjectDetailPage params={{ id: "1" }} />);
 
@@ -153,6 +170,7 @@ describe("ProjectDetailPage", () => {
 		vi.mocked(getProjectDetail).mockResolvedValue(projectWithoutSync);
 		vi.mocked(getMonthlyCommitStats).mockResolvedValue([]);
 		vi.mocked(getWeeklyCommitStats).mockResolvedValue(mockWeeklyData);
+		vi.mocked(getCommitterRanking).mockResolvedValue(mockCommitterRanking);
 
 		render(<ProjectDetailPage params={{ id: "1" }} />);
 
