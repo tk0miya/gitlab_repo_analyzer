@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { commitsRepository, projectsRepository } from "@/database/index";
 import type {
+	CommitterRanking,
 	MonthlyCommitStats,
+	RankingPeriod,
 	WeeklyCommitStats,
 } from "@/database/repositories/commits";
 import type { ProjectWithStats } from "@/database/schema/projects";
@@ -71,6 +73,24 @@ export async function getWeeklyCommitStats(
 	} catch (error) {
 		console.error("週別コミット統計の取得に失敗しました:", error);
 		throw new Error("週別コミット統計の取得に失敗しました");
+	}
+}
+
+/**
+ * プロジェクトのコミッターランキングを取得するServer Action
+ * @param projectId プロジェクトID
+ * @param period 期間（all: 全期間, year: 1年, halfYear: 半年, month: 1ヶ月）
+ * @returns コミッターランキングの配列
+ */
+export async function getCommitterRanking(
+	projectId: number,
+	period: RankingPeriod = "all",
+): Promise<CommitterRanking[]> {
+	try {
+		return await commitsRepository.getCommitterRanking(projectId, period, 10);
+	} catch (error) {
+		console.error("コミッターランキングの取得に失敗しました:", error);
+		throw new Error("コミッターランキングの取得に失敗しました");
 	}
 }
 
